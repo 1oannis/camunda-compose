@@ -573,6 +573,7 @@ services:
     depends_on:
       - elasticsearch
     profiles:
+      - ''
       - kibana
 
 volumes:
