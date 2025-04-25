@@ -1,0 +1,97 @@
+#!/bin/sh
+#
+# ident "@(#)$Id: prune_it | Sat Nov 18 22:55:00 2023 +0100 | UnknownUser @ MacBook-Air-GS-6.local  $"
+# $Author: UnknownUser @ MacBook-Air-GS-6.local <UnknownUser@h-ka.de> $
+#
+# Copyright 2022-2023 (c) Guenther Schreiner <guenther.schreiner@smile.de>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# Description:
+#      Cleanup everything, even within the containe(s)r configuration
+#	to prepare and execute a fresh greenfield startup.
+#
+# Configuration:
+#       @see Constants
+#
+###
+### Constants
+###
+#
+# Path to container configuration
+#
+CONTAINERS="./container ./container.*"
+#
+###
+### Basics
+###
+#
+##
+## Introduction
+##
+#
+# Ask user for permission
+#
+echo "" >/dev/stderr
+echo "WARNING: You are about to perform a complete cleanup of the environment - think about your modifications... " >/dev/stderr
+echo "" >/dev/stderr
+echo -n "Do you really want to start with a greenfield approach (Abort with Ctrl-C)? " >/dev/stderr
+read answer
+echo "" >/dev/stderr
+if [ "$answer" != "yes" ]; then
+   echo " Your answer is not yes, therefore: aborting." >/dev/stderr
+   echo "" >/dev/stderr
+   exit 0
+fi
+#
+##
+## Work on containers and images
+##
+#
+# Stop all containers
+#
+echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv" >/dev/stderr
+echo "Shutting down all containers ..." >/dev/stderr
+docker compose down >/dev/stderr
+echo "-----------------------------------------------------------" >/dev/stderr
+#
+# Cleanup internal files
+#
+echo "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv" >/dev/stderr
+echo "Removing any container-internal flagging files..." >/dev/stderr
+for container in ${CONTAINERS};
+do
+   test -d ${container} || continue
+   echo "> Removing internal flagging files within ${container}..." >/dev/stderr
+   rm -rf ${container}/runit-config/*/supervise/
+   find ${container} -name '*.sh.done' -print -exec rm -f {} +
+done
+echo "-------------------------------------------------" >/dev/stderr
+#
+# Cleanup permanent storage areas (i.e. database files)
+#
+echo "vvvvvvvvvvvvvvvvvvvvvvvv" >/dev/stderr
+echo "Review of permanent storage areas:" >/dev/stderr
+du -s container.*/*-data/ >/dev/stderr
+echo "Erasing permanent storage areass..." >/dev/stderr
+rm -rf container.*/*-data/* >/dev/stderr
+rm -rf container.*/*-data/.??* >/dev/stderr
+echo "------------------------" >/dev/stderr
+#
+echo "done." >/dev/stderr
+echo "" >/dev/stderr
+#
+# end-of-prune_containers
+#

@@ -1,0 +1,104 @@
+#
+# ident "@(#)$Header: $Id: Dockerfile.postgres | Sat Nov 18 21:52:15 2023 +0100 | UnknownUser @ MacBook-Air-GS-6.local  $"
+# $Author: UnknownUser @ MacBook-Air-GS-6.local <UnknownUser@h-ka.de> $
+#
+# Copyright 2023 (c) Guenther Schreiner <guenther.schreiner@smile.de>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# Description:
+#      Prepare the PostgreSQL container.
+#
+# Configuration:
+#       @see Constants
+#
+###
+### Basics
+###
+#
+# Build environment
+#
+ARG     POSTGRES_TAG="14.1-alpine"
+#
+# based on Postgres
+# - version can be overridden by docker-compose.yml with help of:
+#       args:
+#          POSTGRES_TAG:       "1.23-perl"
+#
+FROM    postgres:${POSTGRES_TAG}
+#
+# maintained by myself
+#
+MAINTAINER Guenther Schreiner <guenther.schreiner@smile.de>
+LABEL maintainer="Guenther Schreiner <guenther.schreiner@smile.de>"
+#
+# NOTE: (Optionally) Preparing to use a proxy connection (via container host, port TCP:8080)
+#
+ENV     http_proxy              ${RUNTIME_HTTP_PROXY:-}
+ENV     https_proxy             ${RUNTIME_HTTPS_PROXY:-}
+ENV     no_proxy                'localhost'
+#
+# As well as environment dealing for handover via secrets
+#
+ENV	POSTGRES_DB_FILE		/var/run/secrets/POSTGRES_DB_FILE
+ENV	POSTGRES_USER_FILE		/var/run/secrets/POSTGRES_USER_FILE
+ENV	POSTGRES_PASSWORD_FILE		/var/run/secrets/POSTGRES_PASSWORD_FILE
+ENV	POSTGRES_INITDB_ARGS_FILE	/var/run/secrets/POSTGRES_INITDB_ARGS_FILE
+#
+# Exposed ports
+#
+# Postgres Protocol 
+EXPOSE	5432
+#
+# Use a volume for configuration files
+#
+VOLUME  /container
+#
+# Use a volume for writable files
+#
+VOLUME  /container/rw
+#
+# Use a volume for persistent files
+#
+VOLUME  /var/lib/postgresql/data/
+#
+# Use a volume for database connectivity
+#
+VOLUME	/var/run/postgresql/
+#
+###
+### Derivation steps
+###
+#
+# Build finished
+#
+RUN echo "*** Build finished."
+#
+# Health checking scripts
+#
+HEALTHCHECK CMD ["/container/docker-config/docker-healthcheck.sh"]
+#
+# Initialization script (for debugging only)
+# @See: https://stackoverflow.com/questions/25775266/how-to-keep-docker-container-running-after-starting-services
+#
+#ENTRYPOINT ["tail", "-f", "/dev/null"]
+#
+# No Initialization scripts
+#
+#ENTRYPOINT ["/container/docker-entrypoint.d/docker-entrypoint.sh"]
+#CMD [ "/docker-entrypoint.sh", "nginx" ]
+#
+# end-of-docker.nextcloud/Dockerfile.postgres
+#

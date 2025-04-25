@@ -1,0 +1,115 @@
+# syntax = docker/dockerfile:1.2
+#
+# ident "@(#)$Header: $Id: Dockerfile.keycloak | Sat Nov 18 22:55:23 2023 +0100 | UnknownUser @ MacBook-Air-GS-6.local  $"
+#
+# $Author: UnknownUser @ MacBook-Air-GS-6.local <UnknownUser@h-ka.de> $
+#
+# Copyright 2023 (c) Guenther Schreiner <guenther.schreiner@smile.de>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# Description:
+#      Prepare the Keycloak container.
+#
+# Configuration:
+#       @see Constants
+#
+###
+### Basics
+###
+#
+# Build environment
+#
+ARG     KEYCLOAK_TAG="latest"
+#
+# based on Keycloak 
+# - version can be overridden by docker-compose.yml with help of:
+#       args:
+#          KEYCLOAK_TAG:       "latest"
+#
+FROM    quay.io/keycloak/keycloak:${KEYCLOAK_TAG} as builder
+#
+# maintained by myself
+#
+MAINTAINER Guenther Schreiner <guenther.schreiner@smile.de>
+LABEL maintainer="Guenther Schreiner <guenther.schreiner@smile.de>"
+#
+# NOTE: (Optionally) Preparing to use a proxy connection (via container host, port TCP:8080)
+#
+ENV     http_proxy		${RUNTIME_HTTP_PROXY:-}
+ENV     https_proxy		${RUNTIME_HTTPS_PROXY:-}
+ENV     no_proxy		'localhost'
+#
+# As well as environment dealing for handover via secrets
+#
+ENV 	KC_DB			postgres
+ENV     KC_HOSTNAME_FILE	/var/run/secrets/KC_HOSTNAME_FILE
+ENV     KEYCLOAK_ADMIN_FILE	/var/run/secrets/KEYCLOAK_ADMIN_FILE
+ENV     KEYCLOAK_ADMIN_PASSWORD_FILE	/var/run/secrets/KEYCLOAK_ADMIN_PASSWORD_FILE
+ENV     KC_DB_USERNAME_FILE	/var/run/secrets/KC_DB_USERNAME_FILE
+ENV     KC_DB_PASSWORD_FILE     /var/run/secrets/KC_DB_PASSWORD_FILE
+ENV     KC_HTTPS_CERTIFICATE_FILE	/var/run/secrets/KC_HTTPS_CERTIFICATE_FILE
+ENV     KC_HTTPS_CERTIFICATE_KEY_FILE	/var/run/secrets/KC_HTTPS_CERTIFICATE_KEY_FILE
+#
+# As well as environment (during runtime by configuration/runtime.env and runtime_local_$HOSTNAME.env)
+#  @see: https://www.keycloak.org/server/containers
+#
+# Keycloak script variable to start in development mode.
+#
+ENV     KEYCLOAK_DEVMODE	${KEYCLOAK_DEVMODE:-}
+#
+# Enable health and metrics support
+#
+ENV	KC_HEALTH_ENABLED	${KC_HEALTH_ENABLED:-true}
+ENV	KC_METRICS_ENABLED	${KC_METRICS_ENABLED:-true}
+#
+# Exposed ports
+#
+# HTTP
+EXPOSE	8080
+# HTTPS
+EXPOSE	8443
+#
+# Read-only base container volume
+#
+VOLUME  /container
+#
+# Use a volume for writable files
+#
+VOLUME  /container/rw
+#
+###
+### Derivation steps
+###
+#
+# Build finished
+#
+RUN echo "*** Build finished."
+#
+# Health checking scripts
+#
+HEALTHCHECK CMD ["/container/docker-config/docker-healthcheck.sh"]
+#
+# Initialization script (for debugging only)
+# @See: https://stackoverflow.com/questions/25775266/how-to-keep-docker-container-running-after-starting-services
+#
+#ENTRYPOINT ["tail", "-f", "/dev/null"]
+#
+# No Initialization scripts
+#
+ENTRYPOINT ["/container/docker-entrypoint.d/docker-entrypoint.sh"]
+#
+# end-of-Dockerfile.keycloak
+#
