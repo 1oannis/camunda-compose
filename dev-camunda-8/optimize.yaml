@@ -1,0 +1,43 @@
+# Optimize Service
+# This file contains the Optimize component for advanced analytics
+
+services:
+  optimize: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#optimize
+    image: camunda/optimize:${CAMUNDA_OPTIMIZE_VERSION}
+    container_name: optimize
+    ports:
+      - "8083:8090"
+    environment: # https://docs.camunda.io/docs/self-managed/optimize-deployment/setup/installation/#available-environment-variables
+      - OPTIMIZE_ELASTICSEARCH_HOST=elasticsearch
+      - OPTIMIZE_ELASTICSEARCH_HTTP_PORT=9200
+      - SPRING_PROFILES_ACTIVE=ccsm
+      - CAMUNDA_OPTIMIZE_ZEEBE_ENABLED=true
+      - CAMUNDA_OPTIMIZE_ENTERPRISE=false
+      - CAMUNDA_OPTIMIZE_IDENTITY_ISSUER_URL=http://${KEYCLOAK_HOST}:18080/auth/realms/camunda-platform
+      - CAMUNDA_OPTIMIZE_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform
+      - CAMUNDA_OPTIMIZE_IDENTITY_CLIENTID=optimize
+      - CAMUNDA_OPTIMIZE_IDENTITY_CLIENTSECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
+      - CAMUNDA_OPTIMIZE_IDENTITY_AUDIENCE=optimize-api
+      - CAMUNDA_OPTIMIZE_IDENTITY_BASE_URL=http://identity:8084
+      - CAMUNDA_OPTIMIZE_MULTITENANCY_ENABLED=${MULTI_TENANCY_ENABLED}
+      - CAMUNDA_OPTIMIZE_SECURITY_AUTH_COOKIE_SAME_SITE_ENABLED=false
+      - CAMUNDA_OPTIMIZE_UI_LOGOUT_HIDDEN=true
+      - management.endpoints.web.exposure.include=health
+      - management.endpoint.health.probes.enabled=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8090/api/readyz"]
+      interval: 30s
+      timeout: 1s
+      retries: 5
+      start_period: 30s
+    volumes:
+      - "./.optimize/environment-config.yaml:/optimize/config/environment-config.yaml"
+    restart: on-failure
+    networks:
+      - camunda-platform
+    depends_on:
+      - identity
+      - elasticsearch
+
+networks:
+  camunda-platform: 

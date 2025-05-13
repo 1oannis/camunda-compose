@@ -1,0 +1,58 @@
+# Base infrastructure components (databases and storage)
+# This file contains essential services that other Camunda Platform components depend on
+
+services:
+  elasticsearch: # https://hub.docker.com/_/elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION}
+    container_name: elasticsearch
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      # allow running with low disk space
+      - cluster.routing.allocation.disk.threshold_enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cat/health | grep -q green"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - elastic:/usr/share/elasticsearch/data
+    networks:
+      - camunda-platform
+
+  postgres: # https://hub.docker.com/_/postgres
+    container_name: postgres
+    image: postgres:${POSTGRES_VERSION}
+    environment:
+      POSTGRES_DB: bitnami_keycloak
+      POSTGRES_USER: bn_keycloak
+      POSTGRES_PASSWORD: "#3]O?4RGj)DE7Z!9SA5"
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    networks:
+      - identity-network
+      - camunda-platform
+
+volumes:
+  elastic:
+  postgres:
+
+networks:
+  camunda-platform:
+  identity-network: 
