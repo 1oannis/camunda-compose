@@ -1,0 +1,13 @@
+# C:\Windows\System32\drivers\etc\hosts open as admin
+
+127.0.0.1 keycloak.camunda.local
+127.0.0.1 identity.camunda.local
+127.0.0.1 operate.camunda.local
+127.0.0.1 tasklist.camunda.local
+127.0.0.1 optimize.camunda.local
+127.0.0.1 modeler.camunda.local
+127.0.0.1 modeler-ws.camunda.local
+127.0.0.1 mail.camunda.local
+127.0.0.1 connectors.camunda.local
+127.0.0.1 traefik.camunda.local
+127.0.0.1 kibana.camunda.local

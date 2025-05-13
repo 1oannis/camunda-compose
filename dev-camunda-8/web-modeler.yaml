@@ -26,9 +26,14 @@ services:
     # REST_API_MAIL_PASSWORD and RESTAPI_MAIL_ENABLE_TLS in web-modeler-restapi
     container_name: mailpit
     image: axllent/mailpit:${MAILPIT_VERSION}
-    ports:
-      - "1025:1025"
-      - "8075:8025"
+    # ports: # Mailpit SMTP port 1025 is internal, UI on 8025 will be via Traefik
+    #  - "1025:1025"
+    #  - "8075:8025"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mailpit.rule=Host(`mail.camunda.local`)" # For Mailpit UI
+      - "traefik.http.routers.mailpit.entrypoints=web"
+      - "traefik.http.services.mailpit.loadbalancer.server.port=8025"
     healthcheck:
       test: /usr/bin/nc -v localhost 1025
       interval: 30s
@@ -64,9 +69,9 @@ services:
       RESTAPI_PUSHER_APP_ID: web-modeler-app
       RESTAPI_PUSHER_KEY: web-modeler-app-key
       RESTAPI_PUSHER_SECRET: web-modeler-app-secret
-      RESTAPI_OAUTH2_TOKEN_ISSUER: http://${KEYCLOAK_HOST}:18080/auth/realms/camunda-platform
+      RESTAPI_OAUTH2_TOKEN_ISSUER: http://keycloak.camunda.local/auth/realms/camunda-platform
       RESTAPI_OAUTH2_TOKEN_ISSUER_BACKEND_URL: http://keycloak:18080/auth/realms/camunda-platform
-      RESTAPI_SERVER_URL: http://localhost:8070
+      RESTAPI_SERVER_URL: http://modeler.camunda.local
       RESTAPI_MAIL_HOST: mailpit
       RESTAPI_MAIL_PORT: 1025
       RESTAPI_MAIL_ENABLE_TLS: "false"
@@ -87,8 +92,13 @@ services:
   web-modeler-webapp:
     container_name: web-modeler-webapp
     image: camunda/web-modeler-webapp:${CAMUNDA_WEB_MODELER_VERSION}
-    ports:
-      - "8070:8070"
+    # ports: # Removed
+    #  - "8070:8070"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.modeler-webapp.rule=Host(`modeler.camunda.local`)"
+      - "traefik.http.routers.modeler-webapp.entrypoints=web"
+      - "traefik.http.services.modeler-webapp.loadbalancer.server.port=8070"
     depends_on:
       web-modeler-restapi:
         condition: service_healthy
@@ -100,20 +110,20 @@ services:
     environment:
       RESTAPI_HOST: web-modeler-restapi
       SERVER_HTTPS_ONLY: "false"
-      SERVER_URL: http://localhost:8070
+      SERVER_URL: http://modeler.camunda.local
       PUSHER_APP_ID: web-modeler-app
       PUSHER_KEY: web-modeler-app-key
       PUSHER_SECRET: web-modeler-app-secret
       PUSHER_HOST: web-modeler-websockets
       PUSHER_PORT: "8060"
-      CLIENT_PUSHER_HOST: localhost
-      CLIENT_PUSHER_PORT: "8060"
+      CLIENT_PUSHER_HOST: modeler-ws.camunda.local
+      CLIENT_PUSHER_PORT: "80"
       CLIENT_PUSHER_FORCE_TLS: "false"
       CLIENT_PUSHER_KEY: web-modeler-app-key
       OAUTH2_CLIENT_ID: web-modeler
       OAUTH2_JWKS_URL: http://keycloak:18080/auth/realms/camunda-platform/protocol/openid-connect/certs
       OAUTH2_TOKEN_AUDIENCE: web-modeler-api
-      OAUTH2_TOKEN_ISSUER: http://${KEYCLOAK_HOST}:18080/auth/realms/camunda-platform
+      OAUTH2_TOKEN_ISSUER: http://keycloak.camunda.local/auth/realms/camunda-platform
       IDENTITY_BASE_URL: http://identity:8084/
       PLAY_ENABLED: "true"
     networks:
@@ -123,8 +133,13 @@ services:
   web-modeler-websockets:
     container_name: web-modeler-websockets
     image: camunda/web-modeler-websockets:${CAMUNDA_WEB_MODELER_VERSION}
-    ports:
-      - "8060:8060"
+    # ports: # Removed
+    #  - "8060:8060"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.modeler-websockets.rule=Host(`modeler-ws.camunda.local`)"
+      - "traefik.http.routers.modeler-websockets.entrypoints=web"
+      - "traefik.http.services.modeler-websockets.loadbalancer.server.port=8060"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8060/up"]
       interval: 5s

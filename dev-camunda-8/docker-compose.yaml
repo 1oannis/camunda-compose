@@ -11,6 +11,7 @@
 
 # Include component-specific compose files
 include:
+  - traefik-reverse-proxy.yaml # Traefik reverse proxy
   - base-infrastructure.yaml  # elasticsearch, postgres
   - identity.yaml             # keycloak, identity
   - core-services.yaml        # zeebe, operate, tasklist, connectors

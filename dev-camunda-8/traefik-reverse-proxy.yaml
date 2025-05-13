@@ -1,0 +1,25 @@
+services:
+  traefik:
+    image: traefik:v2.10 # Use a specific version
+    container_name: traefik
+    command:
+      - "--api.insecure=true" # Enables the Traefik dashboard on port 8080 (for dev only)
+      - "--providers.docker=true" # Enables Docker provider
+      - "--providers.docker.exposedbydefault=false" # Only expose services with 'traefik.enable=true'
+      - "--entrypoints.web.address=:80" # Defines an entry point for HTTP traffic
+      # Add entrypoints.websecure.address=:443 for HTTPS later
+    ports:
+      - "80:80" # HTTP traffic
+      - "8080:8080" # Traefik dashboard (development only)
+      # Add - "443:443" for HTTPS later
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro" # Mount Docker socket (read-only)
+    networks:
+      - camunda-platform # Ensure Traefik is on the main network to reach other services
+      - identity-network # Also on identity network if needed for Keycloak/Identity directly
+      - web-modeler # Also on web-modeler network if needed for web-modeler components directly
+
+networks:
+  camunda-platform:
+  identity-network:
+  web-modeler:
