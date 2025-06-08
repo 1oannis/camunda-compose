@@ -11,21 +11,21 @@ services:
     #  - "18080:18080"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.keycloak.rule=Host(`keycloak.camunda.local`)"
+      - "traefik.http.routers.keycloak.rule=Host(`${TRAEFIK_HOSTNAME}`) && PathPrefix(`/keycloak`)"
       - "traefik.http.routers.keycloak.entrypoints=web"
       - "traefik.http.services.keycloak.loadbalancer.server.port=18080"
-      # The /auth path is inherent to Keycloak, Traefik will pass it through.
-      # For example, access Keycloak admin console at http://keycloak.camunda.local/auth/admin/
+      # The /auth path is inherent to Keycloak. Traefik will pass PathPrefix(`/keycloak`) and Keycloak handles /auth.
+      # For example, access Keycloak admin console at http://${TRAEFIK_HOSTNAME}/keycloak/auth/admin/
     environment:
       KEYCLOAK_HTTP_PORT: 18080
-      KEYCLOAK_HTTP_RELATIVE_PATH: /auth
+      KEYCLOAK_HTTP_RELATIVE_PATH: /keycloak/auth
       KEYCLOAK_DATABASE_HOST: postgres
       KEYCLOAK_DATABASE_PASSWORD: "#3]O?4RGj)DE7Z!9SA5"
       KEYCLOAK_ADMIN_USER: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     restart: on-failure
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:18080/auth"]
+      test: ["CMD", "curl", "-f", "http://localhost:18080/keycloak/auth"]
       interval: 30s
       timeout: 15s
       retries: 5
@@ -43,30 +43,30 @@ services:
     #  - "8084:8084"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.identity.rule=Host(`identity.camunda.local`)"
+      - "traefik.http.routers.identity.rule=Host(`${TRAEFIK_HOSTNAME}`) && PathPrefix(`/identity`)"
       - "traefik.http.routers.identity.entrypoints=web"
       - "traefik.http.services.identity.loadbalancer.server.port=8084"
     environment: # https://docs.camunda.io/docs/self-managed/identity/deployment/configuration-variables/
       SERVER_PORT: 8084
       IDENTITY_RETRY_DELAY_SECONDS: 30
-      IDENTITY_URL: http://identity.camunda.local # Updated
-      KEYCLOAK_URL: http://keycloak:18080/auth # Internal URL, remains unchanged
-      IDENTITY_AUTH_PROVIDER_ISSUER_URL: http://keycloak.camunda.local/auth/realms/camunda-platform # Updated
-      IDENTITY_AUTH_PROVIDER_BACKEND_URL: http://keycloak:18080/auth/realms/camunda-platform # Internal URL, remains unchanged
+      IDENTITY_URL: http://${TRAEFIK_HOSTNAME}/identity # Updated
+      KEYCLOAK_URL: http://keycloak:18080/keycloak/auth # Internal URL, remains unchanged
+      IDENTITY_AUTH_PROVIDER_ISSUER_URL: http://${TRAEFIK_HOSTNAME}/keycloak/auth/realms/camunda-platform # Updated
+      IDENTITY_AUTH_PROVIDER_BACKEND_URL: http://keycloak:18080/keycloak/auth/realms/camunda-platform # Internal URL, remains unchanged
       IDENTITY_DATABASE_HOST: postgres
       IDENTITY_DATABASE_PORT: 5432
       IDENTITY_DATABASE_NAME: bitnami_keycloak
       IDENTITY_DATABASE_USERNAME: bn_keycloak
       IDENTITY_DATABASE_PASSWORD: "#3]O?4RGj)DE7Z!9SA5"
       KEYCLOAK_INIT_OPERATE_SECRET: XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
-      KEYCLOAK_INIT_OPERATE_ROOT_URL: http://operate.camunda.local # Updated
+      KEYCLOAK_INIT_OPERATE_ROOT_URL: http://${TRAEFIK_HOSTNAME}/operate # Updated
       KEYCLOAK_INIT_TASKLIST_SECRET: XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
-      KEYCLOAK_INIT_TASKLIST_ROOT_URL: http://tasklist.camunda.local # Updated
+      KEYCLOAK_INIT_TASKLIST_ROOT_URL: http://${TRAEFIK_HOSTNAME}/tasklist # Updated
       KEYCLOAK_INIT_OPTIMIZE_SECRET: XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
-      KEYCLOAK_INIT_OPTIMIZE_ROOT_URL: http://optimize.camunda.local # Updated
-      KEYCLOAK_INIT_WEBMODELER_ROOT_URL: http://modeler.camunda.local # Updated
+      KEYCLOAK_INIT_OPTIMIZE_ROOT_URL: http://${TRAEFIK_HOSTNAME}/optimize # Updated
+      KEYCLOAK_INIT_WEBMODELER_ROOT_URL: http://${TRAEFIK_HOSTNAME}/modeler # Updated
       KEYCLOAK_INIT_CONNECTORS_SECRET: XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
-      KEYCLOAK_INIT_CONNECTORS_ROOT_URL: http://connectors.camunda.local # Updated
+      KEYCLOAK_INIT_CONNECTORS_ROOT_URL: http://${TRAEFIK_HOSTNAME}/connectors # Updated
       KEYCLOAK_INIT_ZEEBE_NAME: zeebe
       KEYCLOAK_USERS_0_USERNAME: "demo"
       KEYCLOAK_USERS_0_PASSWORD: "demo"

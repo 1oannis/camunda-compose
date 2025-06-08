@@ -1,13 +1,32 @@
-# C:\Windows\System32\drivers\etc\hosts open as admin
+# Configuration for local host file (e.g., C:\Windows\System32\drivers\etc\hosts or /etc/hosts)
+#
+# With the updated configuration using path-based routing via Traefik,
+# these specific host entries are generally NO LONGER REQUIRED if you set
+# TRAEFIK_HOSTNAME=localhost in your .env file.
+# You would then access services like: http://localhost/identity, http://localhost/operate, etc.
+#
+# If you set TRAEFIK_HOSTNAME to a custom domain for a server deployment (e.g., camunda.yourserver.com),
+# you would need to ensure that domain resolves to your server's IP address via DNS.
+# The individual *.camunda.local hostnames below would not be used in that scenario.
+#
+# These entries are kept for historical reference or for advanced scenarios
+# where direct host-based access might still be desired for specific services, bypassing the default path routing.
 
-127.0.0.1 keycloak.camunda.local
-127.0.0.1 identity.camunda.local
-127.0.0.1 operate.camunda.local
-127.0.0.1 tasklist.camunda.local
-127.0.0.1 optimize.camunda.local
-127.0.0.1 modeler.camunda.local
-127.0.0.1 modeler-ws.camunda.local
-127.0.0.1 mail.camunda.local
-127.0.0.1 connectors.camunda.local
-127.0.0.1 traefik.camunda.local
-127.0.0.1 kibana.camunda.local
+# 127.0.0.1 keycloak.camunda.local  # Now accessible via http://${TRAEFIK_HOSTNAME}/keycloak
+# 127.0.0.1 identity.camunda.local  # Now accessible via http://${TRAEFIK_HOSTNAME}/identity
+# 127.0.0.1 operate.camunda.local   # Now accessible via http://${TRAEFIK_HOSTNAME}/operate
+# 127.0.0.1 tasklist.camunda.local  # Now accessible via http://${TRAEFIK_HOSTNAME}/tasklist
+# 127.0.0.1 optimize.camunda.local  # Now accessible via http://${TRAEFIK_HOSTNAME}/optimize
+# 127.0.0.1 modeler.camunda.local   # Now accessible via http://${TRAEFIK_HOSTNAME}/modeler
+# 127.0.0.1 modeler-ws.camunda.local # Now accessible via ws://${TRAEFIK_HOSTNAME}/modeler-ws (check client config)
+# 127.0.0.1 mail.camunda.local      # Now accessible via http://${TRAEFIK_HOSTNAME}/mail
+# 127.0.0.1 connectors.camunda.local # Now accessible via http://${TRAEFIK_HOSTNAME}/connectors
+# 127.0.0.1 kibana.camunda.local    # Now accessible via http://${TRAEFIK_HOSTNAME}/kibana
+
+# For Traefik dashboard, if you expose it and use a specific hostname for it:
+# 127.0.0.1 traefik.camunda.local # If dashboard exposed, typically at http://${TRAEFIK_HOSTNAME}/traefik or similar
+
+# If TRAEFIK_HOSTNAME is set to 'localhost' in .env, no host file entries are needed.
+# If TRAEFIK_HOSTNAME is a custom FQDN (e.g., camunda.example.com), ensure DNS resolves it.
+# Example for using 'camunda.local' as TRAEFIK_HOSTNAME for local development (requires this entry):
+# 127.0.0.1 camunda.local # Then access services like http://camunda.local/identity

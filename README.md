@@ -40,3 +40,15 @@ Below is a mapping of each YAML file to the containers it deploys, along with a 
 ---
 
 Each YAML file is included in the main `docker-compose.yaml` file, which orchestrates the full Camunda 8 Self-Managed environment for local development.
+
+# TODO: Auth endpoint hab ich angepasst. Webmodeler funktioniert aber fast alle anderen endpunkte müssen geprüft werden wegen dem redirect. Und was genau soll /app für ein Endpunkt sein? Pls fix
+
+# TODO: Replicate the default access when deployed with Kubernetes:
+ https://docs.camunda.io/docs/self-managed/about-self-managed/
+
+In this configuration, Camunda 8 Self-Managed can be accessed as follows:
+
+- Identity, Operate, Optimize, Tasklist, Modeler: https://camunda.example.com/[identity|operate|optimize|tasklist|modeler]
+- Web Modeler also exposes a WebSocket endpoint on https://camunda.example.com/modeler-ws. This is only used by the application itself and should not be accessed by users directly.
+- Keycloak authentication: https://camunda.example.com/auth
+- Zeebe Gateway: grpc://zeebe.camunda.example.com
