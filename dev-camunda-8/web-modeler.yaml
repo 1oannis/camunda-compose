@@ -69,8 +69,8 @@ services:
       RESTAPI_PUSHER_APP_ID: web-modeler-app
       RESTAPI_PUSHER_KEY: web-modeler-app-key
       RESTAPI_PUSHER_SECRET: web-modeler-app-secret
-      RESTAPI_OAUTH2_TOKEN_ISSUER: http://${TRAEFIK_HOSTNAME}/keycloak/auth/realms/camunda-platform
-      RESTAPI_OAUTH2_TOKEN_ISSUER_BACKEND_URL: http://keycloak:18080/keycloak/auth/realms/camunda-platform
+      RESTAPI_OAUTH2_TOKEN_ISSUER: http://${TRAEFIK_HOSTNAME}/auth/realms/camunda-platform
+      RESTAPI_OAUTH2_TOKEN_ISSUER_BACKEND_URL: http://keycloak:18080/auth/realms/camunda-platform
       RESTAPI_SERVER_URL: http://${TRAEFIK_HOSTNAME}/modeler
       RESTAPI_MAIL_HOST: mailpit
       RESTAPI_MAIL_PORT: 1025
@@ -121,9 +121,9 @@ services:
       CLIENT_PUSHER_FORCE_TLS: "false"
       CLIENT_PUSHER_KEY: web-modeler-app-key
       OAUTH2_CLIENT_ID: web-modeler
-      OAUTH2_JWKS_URL: http://keycloak:18080/keycloak/auth/realms/camunda-platform/protocol/openid-connect/certs
+      OAUTH2_JWKS_URL: http://keycloak:18080/auth/realms/camunda-platform/protocol/openid-connect/certs
       OAUTH2_TOKEN_AUDIENCE: web-modeler-api
-      OAUTH2_TOKEN_ISSUER: http://${TRAEFIK_HOSTNAME}/keycloak/auth/realms/camunda-platform
+      OAUTH2_TOKEN_ISSUER: http://${TRAEFIK_HOSTNAME}/auth/realms/camunda-platform
       IDENTITY_BASE_URL: http://${TRAEFIK_HOSTNAME}/identity/
       PLAY_ENABLED: "true"
     networks:
