@@ -5,6 +5,14 @@ services:
   keycloak: # https://hub.docker.com/r/bitnami/keycloak
     container_name: keycloak
     image: bitnami/keycloak:${KEYCLOAK_SERVER_VERSION}
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: '0.8'
+        reservations:
+          memory: 800M
+          cpus: '0.3'
     volumes:
       - keycloak-theme:/opt/bitnami/keycloak/themes/identity
     # ports: # Removed, will be exposed via Traefik
@@ -40,6 +48,14 @@ services:
   identity: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#identity
     container_name: identity
     image: camunda/identity:${CAMUNDA_IDENTITY_VERSION}
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.8'
+        reservations:
+          memory: 400M
+          cpus: '0.3'
     # ports: # Removed, will be exposed via Traefik
     #  - "8084:8084"
     labels:

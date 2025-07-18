@@ -5,6 +5,14 @@ services:
   zeebe: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
     image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
     container_name: zeebe
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '1'
+        reservations:
+          memory: 2G
+          cpus: '0.8'
     ports:
       - "26500:26500" # gRPC, not via Traefik HTTP proxy
       - "9600:9600"   # Internal health/metrics, not via Traefik usually
@@ -27,7 +35,7 @@ services:
       - CAMUNDA_IDENTITY_BASEURL=http://identity:8084
       - CAMUNDA_IDENTITY_AUDIENCE=zeebe-api
       - SPRING_PROFILES_ACTIVE=identity-auth
-      - "JAVA_TOOL_OPTIONS=-Xms512m -Xmx512m"
+      - "JAVA_TOOL_OPTIONS=-Xms1g -Xmx1g"
       - management.endpoints.web.exposure.include=health,info,metrics,prometheus,configprops
       - MANAGEMENT_ENDPOINT_CONFIGPROPS_SHOW_VALUES=ALWAYS
     env_file:
@@ -51,6 +59,14 @@ services:
   operate: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#operate
     image: camunda/operate:${CAMUNDA_OPERATE_VERSION}
     container_name: operate
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 200M
+          cpus: '0.3'
     # ports: # Removed
     #  - "8081:8080"
     labels:
@@ -103,6 +119,14 @@ services:
   tasklist: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#tasklist
     image: camunda/tasklist:${CAMUNDA_TASKLIST_VERSION}
     container_name: tasklist
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 200M
+          cpus: '0.3'
     # ports: # Removed
     #  - "8082:8080"
     labels:
@@ -162,6 +186,14 @@ services:
   connectors: # https://docs.camunda.io/docs/components/integration-framework/connectors/out-of-the-box-connectors/available-connectors-overview/
     image: camunda/connectors-bundle:${CAMUNDA_CONNECTORS_VERSION}
     container_name: connectors
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+          cpus: '0.4'
+        reservations:
+          memory: 250M
+          cpus: '0.2'
     # ports: # Removed
     #  - "8085:8080"
     labels:

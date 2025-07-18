@@ -184,7 +184,6 @@ services:
       - ZEEBE_CLIENT_ID=${ZEEBE_CLIENT_ID}
       - ZEEBE_CLIENT_SECRET=${ZEEBE_CLIENT_SECRET}
       - ZEEBE_CLIENT_CONFIG_PATH=/tmp/zeebe_auth_cache
-      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=http://zeebe:26500
       - ZEEBE_TOKEN_AUDIENCE=zeebe-api
       - ZEEBE_AUTHORIZATION_SERVER_URL=http://keycloak:18080/auth/realms/camunda-platform/protocol/openid-connect/token
       - CAMUNDA_IDENTITY_ISSUER_URL=http://${KEYCLOAK_HOST}:18080/auth/realms/camunda-platform

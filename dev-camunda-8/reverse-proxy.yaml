@@ -2,6 +2,14 @@ services:
   traefik:
     image: traefik:v2.10 # Use a specific version
     container_name: traefik
+    deploy:
+      resources:
+        limits:
+          memory: 600M
+          cpus: '0.5'
+        reservations:
+          memory: 300M
+          cpus: '0.25'
     command:
       - "--api.insecure=true" # Enables the Traefik dashboard on port 8080 (for dev only)
       - "--providers.docker=true" # Enables Docker provider

@@ -5,6 +5,14 @@ services:
   optimize: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#optimize
     image: camunda/optimize:${CAMUNDA_OPTIMIZE_VERSION}
     container_name: optimize
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 400M
+          cpus: '0.3'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.optimize.rule=Host(`${TRAEFIK_HOSTNAME}`) && PathPrefix(`/optimize`)"
