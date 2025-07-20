@@ -15,9 +15,13 @@ services:
           cpus: '0.3'
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.optimize.rule=Host(`${TRAEFIK_HOSTNAME}`) && PathPrefix(`/optimize`)"
-      - "traefik.http.routers.optimize.entrypoints=web"
+      - "traefik.http.routers.optimize.rule=Host(`${HOSTNAME}`) && PathPrefix(`/optimize`)"
+      - "traefik.http.routers.optimize.entrypoints=websecure"
+      - "traefik.http.routers.optimize.tls.certresolver=letsencrypt"
       - "traefik.http.services.optimize.loadbalancer.server.port=8090"
+      - "traefik.http.middlewares.optimize-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
+      - "traefik.http.middlewares.optimize-headers.headers.customrequestheaders.X-Forwarded-Host=${HOSTNAME}"
+      - "traefik.http.routers.optimize.middlewares=optimize-headers"
     environment: # https://docs.camunda.io/docs/self-managed/optimize-deployment/setup/installation/#available-environment-variables
       - SERVER_SERVLET_CONTEXT_PATH=/optimize
       - OPTIMIZE_ELASTICSEARCH_HOST=elasticsearch
@@ -25,12 +29,12 @@ services:
       - SPRING_PROFILES_ACTIVE=ccsm
       - CAMUNDA_OPTIMIZE_ZEEBE_ENABLED=true
       - CAMUNDA_OPTIMIZE_ENTERPRISE=false
-      - CAMUNDA_OPTIMIZE_IDENTITY_ISSUER_URL=http://${TRAEFIK_HOSTNAME}/auth/realms/camunda-platform
-      - CAMUNDA_OPTIMIZE_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform
+      - CAMUNDA_OPTIMIZE_IDENTITY_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform # Updated for HTTPS
+      - CAMUNDA_OPTIMIZE_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform # Internal URL, remains unchanged
       - CAMUNDA_OPTIMIZE_IDENTITY_CLIENTID=optimize
       - CAMUNDA_OPTIMIZE_IDENTITY_CLIENTSECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
       - CAMUNDA_OPTIMIZE_IDENTITY_AUDIENCE=optimize-api
-      - CAMUNDA_OPTIMIZE_IDENTITY_BASE_URL=http://${TRAEFIK_HOSTNAME}/identity
+      - CAMUNDA_OPTIMIZE_IDENTITY_BASE_URL=https://${HOSTNAME}/identity # Updated for HTTPS
       - CAMUNDA_OPTIMIZE_MULTITENANCY_ENABLED=${MULTI_TENANCY_ENABLED}
       - CAMUNDA_OPTIMIZE_SECURITY_AUTH_COOKIE_SAME_SITE_ENABLED=false
       - CAMUNDA_OPTIMIZE_UI_LOGOUT_HIDDEN=true
