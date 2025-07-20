@@ -185,10 +185,6 @@ services:
       - "traefik.http.middlewares.modeler-websockets-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.modeler-websockets-headers.headers.customrequestheaders.X-Forwarded-Host=${HOSTNAME}"
       - "traefik.http.routers.modeler-websockets.middlewares=modeler-websockets-headers"
-      # WebSocket upgrade headers
-      - "traefik.http.middlewares.modeler-websockets-upgrade.headers.customrequestheaders.Upgrade=${http.request.header.Upgrade}"
-      - "traefik.http.middlewares.modeler-websockets-upgrade.headers.customrequestheaders.Connection=${http.request.header.Connection}"
-      - "traefik.http.routers.modeler-websockets.middlewares=modeler-websockets-headers,modeler-websockets-upgrade"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:8060/up"]
       interval: 5s
