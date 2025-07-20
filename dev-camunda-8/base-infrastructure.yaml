@@ -13,9 +13,6 @@ services:
         reservations:
           memory: 3G
           cpus: '1.0'
-    ports:
-      - "9200:9200"
-      - "9300:9300"
     environment:
       - bootstrap.memory_lock=true
       - discovery.type=single-node

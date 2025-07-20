@@ -1,6 +1,6 @@
 services:
   traefik:
-    image: traefik:v2.10 # Use a specific version
+    image: traefik:${TRAEFIK_VERSION}
     container_name: traefik
     deploy:
       resources:
@@ -10,22 +10,39 @@ services:
         reservations:
           memory: 300M
           cpus: '0.25'
+    restart: always
     command:
-      - "--api.insecure=true" # Enables the Traefik dashboard on port 8080 (for dev only)
-      - "--providers.docker=true" # Enables Docker provider
-      - "--providers.docker.exposedbydefault=false" # Only expose services with 'traefik.enable=true'
-      - "--entrypoints.web.address=:80" # Defines an entry point for HTTP traffic
-      # Add entrypoints.websecure.address=:443 for HTTPS later
+      # Disable unsecured dashboard/API in production, port 8090 is used for it
+      - "--api.dashboard=true"
+      - "--api.insecure=true"
+      # Logging
+      - "--log.level=WARN"
+      - "--log.maxAge=1"
+      - "--log.compress=true"
+      - "--accesslog=true"
+      # Entrypoints
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      # Docker provider
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      # Let's Encrypt configuration
+      - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
     ports:
-      - "80:80" # HTTP traffic
+      - "80:80"
+      - "443:443"
       - "8080:8080" # Traefik dashboard (development only)
-      # Add - "443:443" for HTTPS later
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro" # Mount Docker socket (read-only)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - type: bind
+        source: /opt/volumes/letsencrypt
+        target: /letsencrypt
     networks:
-      - camunda-platform # Ensure Traefik is on the main network to reach other services
-      - identity-network # Also on identity network if needed for Keycloak/Identity directly
-      - web-modeler # Also on web-modeler network if needed for web-modeler components directly
+      - camunda-platform
+      - identity-network
+      - web-modeler
 
 networks:
   camunda-platform:
