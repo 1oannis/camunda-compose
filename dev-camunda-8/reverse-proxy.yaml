@@ -42,7 +42,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - type: bind
-        source: /opt/volumes/letsencrypt
+        source: ./letsencrypt
         target: /letsencrypt
     networks:
       - camunda-platform
