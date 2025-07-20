@@ -12,9 +12,9 @@ services:
           cpus: '0.25'
     restart: always
     command:
-      # Disable unsecured dashboard/API in production, port 8090 is used for it
-      - "--api.dashboard=true"
-      - "--api.insecure=true"
+      # API and Dashboard
+      - "--api.dashboard=${TRAEFIK_DASHBOARD_ENABLED}"
+      - "--api.insecure=${TRAEFIK_DASHBOARD_INSECURE}"
       # Logging
       - "--log.level=WARN"
       - "--log.maxAge=1"
@@ -23,13 +23,18 @@ services:
       # Entrypoints
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+      # Redirect HTTP to HTTPS
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
       # Docker provider
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=camunda-platform"
       # Let's Encrypt configuration
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.caserver=${ACME_CASERVER}"
     ports:
       - "80:80"
       - "443:443"
