@@ -2,21 +2,12 @@ services:
   traefik:
     image: traefik:${TRAEFIK_VERSION}
     container_name: traefik
-    deploy:
-      resources:
-        limits:
-          memory: 600M
-          cpus: '0.5'
-        reservations:
-          memory: 300M
-          cpus: '0.25'
-    restart: always
     command:
       # API and Dashboard
       - "--api.dashboard=${TRAEFIK_DASHBOARD_ENABLED}"
       - "--api.insecure=${TRAEFIK_DASHBOARD_INSECURE}"
       # Logging
-      - "--log.level=WARN"
+      - "--log.level=${TRAEFIK_LOG_LEVEL}"
       - "--log.maxAge=1"
       - "--log.compress=true"
       - "--accesslog=true"
@@ -34,6 +25,7 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      # Uncomment for testing (acme staging server)
       # - "--certificatesresolvers.letsencrypt.acme.caserver=${ACME_CASERVER}"
       # TLS Options for gRPC (using default secure settings)
       # Global middleware for CORS and security headers
@@ -51,6 +43,15 @@ services:
       - camunda-platform
       - identity-network
       - web-modeler
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 600M
+          cpus: '0.5'
+        reservations:
+          memory: 300M
+          cpus: '0.25'
 
 networks:
   camunda-platform:
