@@ -1,2 +1,3 @@
 .DS_Store
-/camunda-latest/
+/camunda-latest/*
+/dev-camunda-8/letsencrypt/*
