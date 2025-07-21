@@ -1,3 +1,5 @@
 .DS_Store
 /camunda-latest/*
 /dev-camunda-8/letsencrypt/*
+
+.env
