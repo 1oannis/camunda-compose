@@ -34,7 +34,10 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.caserver=${ACME_CASERVER}"
+      # - "--certificatesresolvers.letsencrypt.acme.caserver=${ACME_CASERVER}"
+      # TLS Options for gRPC (using default secure settings)
+      # Global middleware for CORS and security headers
+      - "--providers.docker.defaultrule=Host(`${HOSTNAME}`)"
     ports:
       - "80:80"
       - "443:443"

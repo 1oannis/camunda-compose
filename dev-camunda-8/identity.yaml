@@ -23,7 +23,13 @@ services:
       - "traefik.http.services.keycloak.loadbalancer.server.port=18080"
       - "traefik.http.middlewares.keycloak-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.keycloak-headers.headers.customrequestheaders.X-Forwarded-Host=${HOSTNAME}"
-      - "traefik.http.routers.keycloak.middlewares=keycloak-headers"
+      - "traefik.http.middlewares.keycloak-headers.headers.customrequestheaders.X-Forwarded-For=$${client_ip}"
+      - "traefik.http.middlewares.keycloak-headers.headers.customrequestheaders.X-Forwarded-Port=443"
+      - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolallowmethods=${CORS_ALLOWED_METHODS}"
+      - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolallowheaders=${CORS_ALLOWED_HEADERS}"
+      - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolalloworiginlist=${CORS_ALLOWED_ORIGINS}"
+      - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"      
+      - "traefik.http.routers.keycloak.middlewares=keycloak-headers,keycloak-cors"
     environment:
       KEYCLOAK_HTTP_PORT: 18080
       KEYCLOAK_HTTP_RELATIVE_PATH: /auth
@@ -32,7 +38,9 @@ services:
       KEYCLOAK_ADMIN_USER: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       KEYCLOAK_ENABLE_HEALTH_ENDPOINTS: true
+      # Keycloak v24.0.5 proxy configuration - using xforwarded headers
       KEYCLOAK_PROXY_ADDRESS_FORWARDING: true
+      KEYCLOAK_PROXY_HEADERS: xforwarded
     restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:18080/auth/health/ready"]
@@ -65,29 +73,33 @@ services:
       - "traefik.http.services.identity.loadbalancer.server.port=8084"
       - "traefik.http.middlewares.identity-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.identity-headers.headers.customrequestheaders.X-Forwarded-Host=${HOSTNAME}"
-      - "traefik.http.routers.identity.middlewares=identity-headers"
+      - "traefik.http.middlewares.identity-cors.headers.accesscontrolallowmethods=${CORS_ALLOWED_METHODS}"
+      - "traefik.http.middlewares.identity-cors.headers.accesscontrolallowheaders=${CORS_ALLOWED_HEADERS}"
+      - "traefik.http.middlewares.identity-cors.headers.accesscontrolalloworiginlist=${CORS_ALLOWED_ORIGINS}"
+      - "traefik.http.middlewares.identity-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
+      - "traefik.http.routers.identity.middlewares=identity-headers,identity-cors"
     environment: # https://docs.camunda.io/docs/self-managed/identity/deployment/configuration-variables/
       - SERVER_PORT=8084
       - IDENTITY_BASE_PATH=/identity
       - IDENTITY_RETRY_DELAY_SECONDS=30
       - IDENTITY_URL=https://${HOSTNAME}/identity
-      - KEYCLOAK_URL=http://keycloak:18080/auth # Internal URL, remains unchanged
-      - IDENTITY_AUTH_PROVIDER_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform # Updated for HTTPS
-      - IDENTITY_AUTH_PROVIDER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform # Internal URL, remains unchanged
+      - KEYCLOAK_URL=http://keycloak:18080/auth
+      - IDENTITY_AUTH_PROVIDER_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform
+      - IDENTITY_AUTH_PROVIDER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform
       - IDENTITY_DATABASE_HOST=postgres
       - IDENTITY_DATABASE_PORT=5432
       - IDENTITY_DATABASE_NAME=bitnami_keycloak
       - IDENTITY_DATABASE_USERNAME=bn_keycloak
       - IDENTITY_DATABASE_PASSWORD=#3]O?4RGj)DE7Z!9SA5
       - KEYCLOAK_INIT_OPERATE_SECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
-      - KEYCLOAK_INIT_OPERATE_ROOT_URL=https://${HOSTNAME}/operate # Updated for HTTPS
+      - KEYCLOAK_INIT_OPERATE_ROOT_URL=https://${HOSTNAME}/operate
       - KEYCLOAK_INIT_TASKLIST_SECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
-      - KEYCLOAK_INIT_TASKLIST_ROOT_URL=https://${HOSTNAME}/tasklist # Updated for HTTPS
+      - KEYCLOAK_INIT_TASKLIST_ROOT_URL=https://${HOSTNAME}/tasklist
       - KEYCLOAK_INIT_OPTIMIZE_SECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
-      - KEYCLOAK_INIT_OPTIMIZE_ROOT_URL=https://${HOSTNAME}/optimize # Updated for HTTPS
-      - KEYCLOAK_INIT_WEBMODELER_ROOT_URL=https://${HOSTNAME}/modeler # Updated for HTTPS
+      - KEYCLOAK_INIT_OPTIMIZE_ROOT_URL=https://${HOSTNAME}/optimize
+      - KEYCLOAK_INIT_WEBMODELER_ROOT_URL=https://${HOSTNAME}/modeler
       - KEYCLOAK_INIT_CONNECTORS_SECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
-      - KEYCLOAK_INIT_CONNECTORS_ROOT_URL=https://${HOSTNAME}/connectors # Updated for HTTPS
+      - KEYCLOAK_INIT_CONNECTORS_ROOT_URL=https://${HOSTNAME}/connectors
       - KEYCLOAK_INIT_ZEEBE_NAME=zeebe
       - KEYCLOAK_USERS_0_USERNAME=demo
       - KEYCLOAK_USERS_0_PASSWORD=demo

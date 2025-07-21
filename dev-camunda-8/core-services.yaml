@@ -13,18 +13,6 @@ services:
         reservations:
           memory: 2G
           cpus: '0.8'
-    ports:
-      - "26500:26500" # gRPC, not via Traefik HTTP proxy
-      - "9600:9600"   # Internal health/metrics, not via Traefik usually
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.zeebe-rest.rule=Host(`${HOSTNAME}`) && PathPrefix(`/zeebe`)"
-      - "traefik.http.routers.zeebe-rest.entrypoints=websecure"
-      - "traefik.http.routers.zeebe-rest.tls.certresolver=letsencrypt"
-      - "traefik.http.services.zeebe-rest.loadbalancer.server.port=8080"
-      - "traefik.http.middlewares.zeebe-rest-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
-      - "traefik.http.middlewares.zeebe-rest-headers.headers.customrequestheaders.X-Forwarded-Host=${HOSTNAME}"
-      - "traefik.http.routers.zeebe-rest.middlewares=zeebe-rest-headers"
     environment: # https://docs.camunda.io/docs/self-managed/zeebe-deployment/configuration/environment-variables/
       - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_MODE=${ZEEBE_AUTHENTICATION_MODE}
       - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_IDENTITY_ISSUERBACKENDURL=http://keycloak:18080/auth/realms/camunda-platform # Internal
@@ -83,7 +71,13 @@ services:
       - "traefik.http.services.operate.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.operate-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.operate-headers.headers.customrequestheaders.X-Forwarded-Host=${HOSTNAME}"
-      - "traefik.http.routers.operate.middlewares=operate-headers"
+      - "traefik.http.middlewares.operate-headers.headers.customrequestheaders.X-Forwarded-For=$${client_ip}"
+      - "traefik.http.middlewares.operate-headers.headers.customrequestheaders.X-Forwarded-Port=443"
+      - "traefik.http.middlewares.operate-cors.headers.accesscontrolallowmethods=${CORS_ALLOWED_METHODS}"
+      - "traefik.http.middlewares.operate-cors.headers.accesscontrolallowheaders=${CORS_ALLOWED_HEADERS}"
+      - "traefik.http.middlewares.operate-cors.headers.accesscontrolalloworiginlist=${CORS_ALLOWED_ORIGINS}"
+      - "traefik.http.middlewares.operate-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
+      - "traefik.http.routers.operate.middlewares=operate-headers,operate-cors"
     environment: # https://docs.camunda.io/docs/self-managed/operate-deployment/configuration/
       - SERVER_SERVLET_CONTEXT_PATH=/operate
       - CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS=zeebe:26500
@@ -96,11 +90,12 @@ services:
       # For more information regarding configuration with Identity see:
       # https://docs.camunda.io/docs/self-managed/operate-deployment/authentication/#identity
       - SPRING_PROFILES_ACTIVE=identity-auth
-      - CAMUNDA_OPERATE_IDENTITY_BASEURL=http://identity:8084 # Internal
-      - CAMUNDA_OPERATE_IDENTITY_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform # Updated for HTTPS
-      - CAMUNDA_OPERATE_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform # Internal
+      - CAMUNDA_OPERATE_IDENTITY_BASEURL=http://identity:8084
+      - CAMUNDA_OPERATE_IDENTITY_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform
+      - CAMUNDA_OPERATE_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform
       - CAMUNDA_OPERATE_IDENTITY_CLIENTID=operate
       - CAMUNDA_OPERATE_IDENTITY_CLIENTSECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
+      - SERVER_FORWARD_HEADERS_STRATEGY=native
       - CAMUNDA_OPERATE_IDENTITY_AUDIENCE=operate-api
       - CAMUNDA_OPERATE_MULTITENANCY_ENABLED=${MULTI_TENANCY_ENABLED}
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:18080/auth/realms/camunda-platform
@@ -145,7 +140,13 @@ services:
       - "traefik.http.services.tasklist.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.tasklist-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.tasklist-headers.headers.customrequestheaders.X-Forwarded-Host=${HOSTNAME}"
-      - "traefik.http.routers.tasklist.middlewares=tasklist-headers"
+      - "traefik.http.middlewares.tasklist-headers.headers.customrequestheaders.X-Forwarded-For=$${client_ip}"
+      - "traefik.http.middlewares.tasklist-headers.headers.customrequestheaders.X-Forwarded-Port=443"
+      - "traefik.http.middlewares.tasklist-cors.headers.accesscontrolallowmethods=${CORS_ALLOWED_METHODS}"
+      - "traefik.http.middlewares.tasklist-cors.headers.accesscontrolallowheaders=${CORS_ALLOWED_HEADERS}"
+      - "traefik.http.middlewares.tasklist-cors.headers.accesscontrolalloworiginlist=${CORS_ALLOWED_ORIGINS}"
+      - "traefik.http.middlewares.tasklist-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
+      - "traefik.http.routers.tasklist.middlewares=tasklist-headers,tasklist-cors"
     environment: # https://docs.camunda.io/docs/self-managed/tasklist-deployment/configuration/
       - SERVER_SERVLET_CONTEXT_PATH=/tasklist
       - CAMUNDA_TASKLIST_ZEEBE_GATEWAYADDRESS=zeebe:26500
@@ -160,11 +161,12 @@ services:
       # For more information regarding configuration with Identity see:
       # https://docs.camunda.io/docs/self-managed/tasklist-deployment/authentication/#identity
       - SPRING_PROFILES_ACTIVE=identity-auth
-      - CAMUNDA_TASKLIST_IDENTITY_BASEURL=http://identity:8084 # Internal
-      - CAMUNDA_TASKLIST_IDENTITY_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform # Updated for HTTPS
-      - CAMUNDA_TASKLIST_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform # Internal
+      - CAMUNDA_TASKLIST_IDENTITY_BASEURL=http://identity:8084
+      - CAMUNDA_TASKLIST_IDENTITY_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform
+      - CAMUNDA_TASKLIST_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform
       - CAMUNDA_TASKLIST_IDENTITY_CLIENTID=tasklist
       - CAMUNDA_TASKLIST_IDENTITY_CLIENTSECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
+      - SERVER_FORWARD_HEADERS_STRATEGY=native
       - CAMUNDA_TASKLIST_IDENTITY_AUDIENCE=tasklist-api
       - CAMUNDA_TASKLIST_MULTITENANCY_ENABLED=${MULTI_TENANCY_ENABLED}
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://keycloak:18080/auth/realms/camunda-platform
@@ -214,7 +216,11 @@ services:
       - "traefik.http.services.connectors.loadbalancer.server.port=8080"
       - "traefik.http.middlewares.connectors-headers.headers.customrequestheaders.X-Forwarded-Proto=https"
       - "traefik.http.middlewares.connectors-headers.headers.customrequestheaders.X-Forwarded-Host=${HOSTNAME}"
-      - "traefik.http.routers.connectors.middlewares=connectors-headers"
+      - "traefik.http.middlewares.connectors-cors.headers.accesscontrolallowmethods=${CORS_ALLOWED_METHODS}"
+      - "traefik.http.middlewares.connectors-cors.headers.accesscontrolallowheaders=${CORS_ALLOWED_HEADERS}"
+      - "traefik.http.middlewares.connectors-cors.headers.accesscontrolalloworiginlist=${CORS_ALLOWED_ORIGINS}"
+      - "traefik.http.middlewares.connectors-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
+      - "traefik.http.routers.connectors.middlewares=connectors-headers,connectors-cors"
     environment:
       - CAMUNDA_CLIENT_ZEEBE_REST-ADDRESS=http://zeebe:8080 # Internal
       - OPERATE_CLIENT_BASEURL=http://operate:8080
@@ -229,11 +235,7 @@ services:
       - ZEEBE_CLIENT_ID=${ZEEBE_CLIENT_ID}
       - ZEEBE_CLIENT_SECRET=${ZEEBE_CLIENT_SECRET}
       - ZEEBE_CLIENT_CONFIG_PATH=/tmp/zeebe_auth_cache
-      - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=http://zeebe:26500 # Internal
       - ZEEBE_TOKEN_AUDIENCE=zeebe-api
-      - ZEEBE_AUTHORIZATION_SERVER_URL=http://keycloak:18080/auth/realms/camunda-platform/protocol/openid-connect/token # Internal
-      - CAMUNDA_IDENTITY_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform # Updated for HTTPS
-      - CAMUNDA_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform # Internal
       - CAMUNDA_IDENTITY_CLIENT_ID=connectors
       - CAMUNDA_IDENTITY_CLIENT_SECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
       - CAMUNDA_IDENTITY_TYPE=KEYCLOAK
