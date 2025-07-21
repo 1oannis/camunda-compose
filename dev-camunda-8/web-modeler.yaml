@@ -34,6 +34,8 @@ services:
     # REST_API_MAIL_PASSWORD and RESTAPI_MAIL_ENABLE_TLS in web-modeler-restapi
     container_name: mailpit
     image: axllent/mailpit:${MAILPIT_VERSION}
+    environment:
+      - MP_WEBROOT=/mail
     deploy:
       resources:
         limits:
