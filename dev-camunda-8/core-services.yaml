@@ -5,14 +5,14 @@ services:
   zeebe: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#zeebe
     image: camunda/zeebe:${CAMUNDA_ZEEBE_VERSION}
     container_name: zeebe
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-          cpus: '1'
-        reservations:
-          memory: 2G
-          cpus: '0.8'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zeebe-grpc.rule=Host(`zeebe.${HOSTNAME}`)"
+      - "traefik.http.routers.zeebe-grpc.entrypoints=webgrpc"
+      - "traefik.http.routers.zeebe-grpc.tls.certresolver=letsencrypt"
+      - "traefik.http.services.zeebe-grpc.loadbalancer.server.port=26500"
+      - "traefik.http.routers.zeebe-grpc.tls=true"
+      - "traefik.http.routers.zeebe-grpc.service=zeebe-grpc"
     environment: # https://docs.camunda.io/docs/self-managed/zeebe-deployment/configuration/environment-variables/
       - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_MODE=${ZEEBE_AUTHENTICATION_MODE}
       - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_IDENTITY_ISSUERBACKENDURL=http://keycloak:18080/auth/realms/camunda-platform # Internal
@@ -37,34 +37,38 @@ services:
     env_file:
       - path: .env
         required: true
-    restart: always
+    volumes:
+      - ./container.zeebe/data:/usr/local/zeebe/data
+    networks:
+      - camunda-platform
     healthcheck:
-      test: ["CMD-SHELL", "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "timeout 10s bash -c ':> /dev/tcp/127.0.0.1/9600' || exit 1",
+        ]
       interval: 30s
       timeout: 5s
       retries: 5
       start_period: 30s
-    volumes:
-      - zeebe:/usr/local/zeebe/data
-    networks:
-      - camunda-platform
     depends_on:
       elasticsearch:
         condition: service_healthy
       identity:
         condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "1"
+        reservations:
+          memory: 2G
+          cpus: "0.8"
 
   operate: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#operate
     image: camunda/operate:${CAMUNDA_OPERATE_VERSION}
     container_name: operate
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 200M
-          cpus: '0.3'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.operate.rule=Host(`${HOSTNAME}`) && PathPrefix(`/operate`)"
@@ -108,16 +112,20 @@ services:
       - MANAGEMENT_ENDPOINT_CONFIGPROPS_SHOW_VALUES=ALWAYS
       - management.endpoint.health.probes.enabled=true
       - ZEEBE_CLIENT_CONFIG_PATH=/tmp/zeebe_auth_cache
+    volumes:
+      - ./container.operate/tmp:/tmp
+    networks:
+      - camunda-platform
     healthcheck:
-      test: ["CMD-SHELL", "wget -O - -q 'http://localhost:9600/actuator/health/readiness'"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -O - -q 'http://localhost:9600/actuator/health/readiness'",
+        ]
       interval: 30s
       timeout: 1s
       retries: 5
       start_period: 30s
-    volumes:
-      - operate_tmp:/tmp
-    networks:
-      - camunda-platform
     depends_on:
       zeebe:
         condition: service_healthy
@@ -125,18 +133,19 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
-
-  tasklist: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#tasklist
-    image: camunda/tasklist:${CAMUNDA_TASKLIST_VERSION}
-    container_name: tasklist
+    restart: unless-stopped
     deploy:
       resources:
         limits:
           memory: 1G
-          cpus: '1.0'
+          cpus: "1.0"
         reservations:
           memory: 200M
-          cpus: '0.3'
+          cpus: "0.3"
+
+  tasklist: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#tasklist
+    image: camunda/tasklist:${CAMUNDA_TASKLIST_VERSION}
+    container_name: tasklist
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.tasklist.rule=Host(`${HOSTNAME}`) && PathPrefix(`/tasklist`)"
@@ -184,16 +193,20 @@ services:
     env_file:
       - path: .env
         required: true
+    volumes:
+      - ./container.tasklist/tmp:/tmp
+    networks:
+      - camunda-platform
     healthcheck:
-      test: ["CMD-SHELL", "wget -O - -q 'http://localhost:9600/actuator/health/readiness'"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -O - -q 'http://localhost:9600/actuator/health/readiness'",
+        ]
       interval: 30s
       timeout: 1s
       retries: 5
       start_period: 30s
-    volumes:
-      - tasklist_tmp:/tmp
-    networks:
-      - camunda-platform
     depends_on:
       zeebe:
         condition: service_healthy
@@ -201,18 +214,19 @@ services:
         condition: service_healthy
       identity:
         condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 200M
+          cpus: "0.3"
 
   connectors: # https://docs.camunda.io/docs/components/integration-framework/connectors/out-of-the-box-connectors/available-connectors-overview/
     image: camunda/connectors-bundle:${CAMUNDA_CONNECTORS_VERSION}
     container_name: connectors
-    deploy:
-      resources:
-        limits:
-          memory: 500M
-          cpus: '0.4'
-        reservations:
-          memory: 250M
-          cpus: '0.2'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.connectors.rule=Host(`${HOSTNAME}`) && PathPrefix(`/connectors`)"
@@ -248,9 +262,12 @@ services:
       - management.endpoints.web.exposure.include=health,info,metrics,prometheus,configprops
       - MANAGEMENT_ENDPOINT_CONFIGPROPS_SHOW_VALUES=ALWAYS
       - management.endpoint.health.probes.enabled=true
-    env_file: connector-secrets.txt
+    env_file:
+      - path: connector-secrets.txt
+        required: true
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health/readiness"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health/readiness"]
       interval: 30s
       timeout: 1s
       retries: 5
@@ -264,6 +281,15 @@ services:
         condition: service_healthy
       identity:
         condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+          cpus: "0.4"
+        reservations:
+          memory: 250M
+          cpus: "0.2"
 
 volumes:
   zeebe:
