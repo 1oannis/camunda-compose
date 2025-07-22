@@ -21,37 +21,34 @@ services:
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=camunda-platform"
+      # Default fallback rule
+      - "--providers.docker.defaultrule=Host(`${HOSTNAME}`)"
       # Let's Encrypt configuration
       - "--certificatesresolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       # Uncomment for testing (acme staging server)
       # - "--certificatesresolvers.letsencrypt.acme.caserver=${ACME_CASERVER}"
-      # TLS Options for gRPC (using default secure settings)
-      # Global middleware for CORS and security headers
-      - "--providers.docker.defaultrule=Host(`${HOSTNAME}`)"
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080" # Traefik dashboard (development only)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - type: bind
-        source: ./letsencrypt
-        target: /letsencrypt
+      - ./container.traefik/letsencrypt:/letsencrypt
     networks:
       - camunda-platform
       - identity-network
       - web-modeler
-    restart: always
+    restart: unless-stopped
     deploy:
       resources:
         limits:
           memory: 600M
-          cpus: '0.5'
+          cpus: "0.5"
         reservations:
           memory: 300M
-          cpus: '0.25'
+          cpus: "0.25"
 
 networks:
   camunda-platform:
