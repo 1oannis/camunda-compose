@@ -5,14 +5,6 @@ services:
   elasticsearch: # https://hub.docker.com/_/elasticsearch
     image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_VERSION}
     container_name: elasticsearch
-    deploy:
-      resources:
-        limits:
-          memory: 6G
-          cpus: '2.0'
-        reservations:
-          memory: 3G
-          cpus: '1.0'
     environment:
       - bootstrap.memory_lock=true
       - discovery.type=single-node
@@ -20,52 +12,60 @@ services:
       # allow running with low disk space
       - cluster.routing.allocation.disk.threshold_enabled=false
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    volumes:
+      - ./container.elasticsearch/data:/usr/share/elasticsearch/data
+    networks:
+      - camunda-platform
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -f http://localhost:9200/_cat/health | grep -q green",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
     ulimits:
       memlock:
         soft: -1
         hard: -1
-    restart: always
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cat/health | grep -q green"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-    volumes:
-      - elastic:/usr/share/elasticsearch/data
-    networks:
-      - camunda-platform
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 6G
+          cpus: "2.0"
+        reservations:
+          memory: 3G
+          cpus: "1.0"
 
   postgres: # https://hub.docker.com/_/postgres
     container_name: postgres
     image: postgres:${POSTGRES_VERSION}
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.5'
-        reservations:
-          memory: 512M
-          cpus: '0.25'
     environment:
       POSTGRES_DB: bitnami_keycloak
       POSTGRES_USER: bn_keycloak
       POSTGRES_PASSWORD: "#3]O?4RGj)DE7Z!9SA5"
-    restart: on-failure
+    volumes:
+      - ./container.postgres/data:/var/lib/postgresql/data
+    networks:
+      - identity-network
+      - camunda-platform
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    volumes:
-      - postgres:/var/lib/postgresql/data
-    networks:
-      - identity-network
-      - camunda-platform
-
-volumes:
-  elastic:
-  postgres:
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.5"
+        reservations:
+          memory: 512M
+          cpus: "0.25"
 
 networks:
   camunda-platform:
-  identity-network: 
+  identity-network:

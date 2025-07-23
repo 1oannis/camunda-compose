@@ -291,10 +291,5 @@ services:
           memory: 250M
           cpus: "0.2"
 
-volumes:
-  zeebe:
-  operate_tmp:
-  tasklist_tmp:
-
 networks:
   camunda-platform:
