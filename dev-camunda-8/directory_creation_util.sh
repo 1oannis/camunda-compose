@@ -50,6 +50,14 @@ echo "Setting permissions for tasklist directory..."
 sudo chown 1001:1001 -R ./container.tasklist
 sudo chmod 700 -R ./container.tasklist
 
+if [ ! -d ./container.web-modeler-db/data ]; then
+  echo "Creating web-modeler-db directory..."
+  sudo mkdir -p ./container.web-modeler-db/data
+fi
+echo "Setting permissions for web-modeler-db directory..."
+sudo chown 0:0 -R ./container.web-modeler-db
+sudo chmod 700 -R ./container.web-modeler-db
+
 echo "Directories created and permissions set."
 echo "Please run 'docker compose up -d' to start the services."
 echo "--------------------------------"
