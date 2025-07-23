@@ -1,11 +1,4 @@
 .DS_Store
 /camunda-latest/*
-/dev-camunda-8/container.elasticsearch/** 
-/dev-camunda-8/container.operate/**
-/dev-camunda-8/container.postgres/**
-/dev-camunda-8/container.tasklist/**
-/dev-camunda-8/container.traefik/**
-/dev-camunda-8/container.web-modeler-db/**
-/dev-camunda-8/container.zeebe/**
 
 .env

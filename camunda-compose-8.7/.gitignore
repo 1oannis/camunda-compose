@@ -1,0 +1,7 @@
+container.elasticsearch/** 
+container.operate/**
+container.postgres/**
+container.tasklist/**
+container.traefik/**
+container.web-modeler-db/**
+container.zeebe/**
