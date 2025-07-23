@@ -5,16 +5,6 @@ services:
   keycloak: # https://hub.docker.com/r/bitnami/keycloak
     container_name: keycloak
     image: bitnami/keycloak:${KEYCLOAK_SERVER_VERSION}
-    deploy:
-      resources:
-        limits:
-          memory: 1.5G
-          cpus: '0.8'
-        reservations:
-          memory: 800M
-          cpus: '0.3'
-    volumes:
-      - keycloak-theme:/opt/bitnami/keycloak/themes/identity
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.keycloak.rule=Host(`${HOSTNAME}`) && PathPrefix(`/auth`)"
@@ -28,7 +18,7 @@ services:
       - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolallowmethods=${CORS_ALLOWED_METHODS}"
       - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolallowheaders=${CORS_ALLOWED_HEADERS}"
       - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolalloworiginlist=${CORS_ALLOWED_ORIGINS}"
-      - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"      
+      - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.keycloak.middlewares=keycloak-headers,keycloak-cors"
     environment:
       KEYCLOAK_HTTP_PORT: 18080
@@ -41,30 +31,32 @@ services:
       # Keycloak v24.0.5 proxy configuration - using xforwarded headers
       KEYCLOAK_PROXY_ADDRESS_FORWARDING: true
       KEYCLOAK_PROXY_HEADERS: xforwarded
-    restart: on-failure
+    volumes:
+      - keycloak-theme:/opt/bitnami/keycloak/themes/identity
+    networks:
+      - camunda-platform
+      - identity-network
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:18080/auth/health/ready"]
       interval: 30s
       timeout: 15s
       retries: 5
       start_period: 30s
-    networks:
-      - camunda-platform
-      - identity-network
     depends_on:
       - postgres
+    deploy:
+      resources:
+        limits:
+          memory: 1.5G
+          cpus: "0.8"
+        reservations:
+          memory: 800M
+          cpus: "0.3"
 
   identity: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#identity
     container_name: identity
     image: camunda/identity:${CAMUNDA_IDENTITY_VERSION}
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '0.8'
-        reservations:
-          memory: 400M
-          cpus: '0.3'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.identity.rule=Host(`${HOSTNAME}`) && PathPrefix(`/identity`)"
@@ -130,21 +122,37 @@ services:
       - KEYCLOAK_CLIENTS_0_PERMISSIONS_5_DEFINITION=read:*
       - MULTITENANCY_ENABLED=${MULTI_TENANCY_ENABLED}
       - RESOURCE_PERMISSIONS_ENABLED=${RESOURCE_AUTHORIZATIONS_ENABLED}
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
-      interval: 5s
-      timeout: 15s
-      retries: 30
-      start_period: 60s
-    restart: on-failure
     volumes:
       - keycloak-theme:/app/keycloak-theme
     networks:
       - camunda-platform
       - identity-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "-q",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8082/actuator/health",
+        ]
+      interval: 5s
+      timeout: 15s
+      retries: 30
+      start_period: 60s
     depends_on:
       keycloak:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "0.8"
+        reservations:
+          memory: 400M
+          cpus: "0.3"
 
 volumes:
   keycloak-theme:
