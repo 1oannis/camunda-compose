@@ -5,14 +5,6 @@ services:
   optimize: # https://docs.camunda.io/docs/self-managed/platform-deployment/docker/#optimize
     image: camunda/optimize:${CAMUNDA_OPTIMIZE_VERSION}
     container_name: optimize
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 400M
-          cpus: '0.3'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.optimize.rule=Host(`${HOSTNAME}`) && PathPrefix(`/optimize`)"
@@ -45,20 +37,28 @@ services:
       - CAMUNDA_OPTIMIZE_UI_LOGOUT_HIDDEN=true
       - management.endpoints.web.exposure.include=health
       - management.endpoint.health.probes.enabled=true
+    volumes:
+      - "./container.optimize/configuration/environment-config.yaml:/optimize/config/environment-config.yaml"
+    networks:
+      - camunda-platform
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8090/api/readyz"]
       interval: 30s
       timeout: 1s
       retries: 5
       start_period: 30s
-    volumes:
-      - "./.optimize/environment-config.yaml:/optimize/config/environment-config.yaml"
-    restart: on-failure
-    networks:
-      - camunda-platform
     depends_on:
       - identity
       - elasticsearch
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "1.0"
+        reservations:
+          memory: 400M
+          cpus: "0.3"
 
 networks:
   camunda-platform:
