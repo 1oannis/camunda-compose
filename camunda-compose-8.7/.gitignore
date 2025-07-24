@@ -5,3 +5,6 @@ container.tasklist/**
 container.traefik/**
 container.web-modeler-db/**
 container.zeebe/**
+
+configuration/runtime_local_camunda.1oannis.com.env
+configuration/runtime_local_camunda.1oannis.com/**

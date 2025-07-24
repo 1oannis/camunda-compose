@@ -35,7 +35,7 @@ services:
       - management.endpoints.web.exposure.include=health,info,metrics,prometheus,configprops
       - MANAGEMENT_ENDPOINT_CONFIGPROPS_SHOW_VALUES=ALWAYS
     env_file:
-      - path: .env
+      - path: ./configuration/runtime.env
         required: true
     volumes:
       - ./container.zeebe/data:/usr/local/zeebe/data
@@ -100,7 +100,7 @@ services:
       - CAMUNDA_OPERATE_IDENTITY_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform
       - CAMUNDA_OPERATE_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform
       - CAMUNDA_OPERATE_IDENTITY_CLIENTID=operate
-      - CAMUNDA_OPERATE_IDENTITY_CLIENTSECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
+      - CAMUNDA_OPERATE_IDENTITY_CLIENTSECRET=${OPERATE_CLIENT_SECRET}
       - SERVER_FORWARD_HEADERS_STRATEGY=native
       - CAMUNDA_OPERATE_IDENTITY_AUDIENCE=operate-api
       - CAMUNDA_OPERATE_MULTITENANCY_ENABLED=${MULTI_TENANCY_ENABLED}
@@ -179,7 +179,7 @@ services:
       - CAMUNDA_TASKLIST_IDENTITY_ISSUER_URL=https://${HOSTNAME}/auth/realms/camunda-platform
       - CAMUNDA_TASKLIST_IDENTITY_ISSUER_BACKEND_URL=http://keycloak:18080/auth/realms/camunda-platform
       - CAMUNDA_TASKLIST_IDENTITY_CLIENTID=tasklist
-      - CAMUNDA_TASKLIST_IDENTITY_CLIENTSECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
+      - CAMUNDA_TASKLIST_IDENTITY_CLIENTSECRET=${TASKLIST_CLIENT_SECRET}
       - SERVER_FORWARD_HEADERS_STRATEGY=native
       - CAMUNDA_TASKLIST_IDENTITY_AUDIENCE=tasklist-api
       - CAMUNDA_TASKLIST_MULTITENANCY_ENABLED=${MULTI_TENANCY_ENABLED}
@@ -191,7 +191,7 @@ services:
       - MANAGEMENT_ENDPOINT_CONFIGPROPS_SHOW_VALUES=ALWAYS
       - management.endpoint.health.probes.enabled=true
     env_file:
-      - path: .env
+      - path: ./configuration/runtime.env
         required: true
     volumes:
       - ./container.tasklist/tmp:/tmp
@@ -246,7 +246,7 @@ services:
       - OPERATE_CLIENT_AUTHURL=http://keycloak:18080/auth/realms/camunda-platform/protocol/openid-connect/token
       - OPERATE_CLIENT_AUDIENCE=operate-api
       - OPERATE_CLIENT_CLIENTID=connectors
-      - OPERATE_CLIENT_CLIENTSECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
+      - OPERATE_CLIENT_CLIENTSECRET=${CONNECTORS_CLIENT_SECRET}
       - CAMUNDA_CLIENT_MODE=self-managed
       - CAMUNDA_CLIENT_ZEEBE_GRPCADDRESS=http://zeebe:26500
       - CAMUNDA_CLIENT_ZEEBE_RESTADDRESS=http://zeebe:8080
@@ -255,7 +255,7 @@ services:
       - CAMUNDA_CLIENT_AUTH_TOKEN_URL=http://keycloak:18080/auth/realms/camunda-platform/protocol/openid-connect/token
       - CAMUNDA_CLIENT_ZEEBE_AUDIENCE=zeebe-api
       - CAMUNDA_IDENTITY_CLIENT_ID=connectors
-      - CAMUNDA_IDENTITY_CLIENT_SECRET=XALaRPl5qwTEItdwCMiPS62nVpKs7dL7
+      - CAMUNDA_IDENTITY_CLIENT_SECRET=${CONNECTORS_CLIENT_SECRET}
       - CAMUNDA_IDENTITY_TYPE=KEYCLOAK
       - CAMUNDA_IDENTITY_AUDIENCE=operate-api
       - ZEEBE_CLIENT_CONFIG_PATH=/tmp/zeebe_auth_cache
@@ -263,7 +263,7 @@ services:
       - MANAGEMENT_ENDPOINT_CONFIGPROPS_SHOW_VALUES=ALWAYS
       - management.endpoint.health.probes.enabled=true
     env_file:
-      - path: connector-secrets.txt
+      - path: ./configuration/runtime_local_${HOSTNAME:-SAMPLEHOST}/connector-secrets.txt
         required: true
     healthcheck:
       test:
