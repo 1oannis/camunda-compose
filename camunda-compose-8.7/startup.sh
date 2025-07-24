@@ -1,7 +1,5 @@
 #!/bin/bash
 
-./directory_creation_util.sh
-
 docker compose --env-file .env \
   --env-file configuration/runtime.env \
   --env-file configuration/runtime_local_${HOSTNAME:-SAMPLEHOST}.env \

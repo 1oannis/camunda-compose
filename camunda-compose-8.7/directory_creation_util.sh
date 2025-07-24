@@ -24,7 +24,7 @@ if [ ! -d ./container.postgres/data ]; then
 fi
 echo "Setting permissions for postgres directory..."
 sudo chown 0:0 -R ./container.postgres
-sudo chmod 700 -R ./container.postgres
+sudo chmod 755 -R ./container.postgres
 
 if [ ! -d ./container.zeebe/data ]; then
   echo "Creating zeebe directory..."
@@ -56,7 +56,7 @@ if [ ! -d ./container.web-modeler-db/data ]; then
 fi
 echo "Setting permissions for web-modeler-db directory..."
 sudo chown 0:0 -R ./container.web-modeler-db
-sudo chmod 700 -R ./container.web-modeler-db
+sudo chmod 755 -R ./container.web-modeler-db
 
 if [ ! -d ./container.optimize/configuration ]; then
   echo "Creating optimize directory..."
