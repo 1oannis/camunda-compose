@@ -92,6 +92,7 @@ ENV_FILES=(
     ".env"
     "configuration/runtime.env"
     "configuration/runtime_local_${HOSTNAME}.env"
+    "configuration/runtime_local_${HOSTNAME}/reverse-proxy.env"
     "configuration/runtime_local_${HOSTNAME}/base-infrastructure.env"
     "configuration/runtime_local_${HOSTNAME}/identity.env"
     "configuration/runtime_local_${HOSTNAME}/core-services.env"

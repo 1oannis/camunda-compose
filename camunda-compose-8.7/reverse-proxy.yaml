@@ -2,10 +2,18 @@ services:
   traefik:
     image: traefik:${TRAEFIK_VERSION}
     container_name: traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`${HOSTNAME}`) && (PathPrefix(`/dashboard`) || PathPrefix(`/api`))"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth"
+      - "traefik.http.middlewares.dashboard-auth.basicauth.users=${TRAEFIK_DASHBOARD_USER}:${TRAEFIK_DASHBOARD_PASSWORD_HASH}"
     command:
-      # API and Dashboard
+      # Dashboard und healthcheck api
       - "--api.dashboard=${TRAEFIK_DASHBOARD_ENABLED}"
-      - "--api.insecure=${TRAEFIK_DASHBOARD_INSECURE}"
+      - "--ping=true"
       # Logging
       - "--log.level=${TRAEFIK_LOG_LEVEL}"
       - "--log.maxAge=1"
@@ -34,7 +42,6 @@ services:
       - "80:80"
       - "443:443"
       - "26500:26500"
-      - "8080:8080" # Traefik dashboard (development only)
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./container.traefik/letsencrypt:/letsencrypt
@@ -42,6 +49,12 @@ services:
       - camunda-platform
       - identity-network
       - web-modeler
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
     restart: unless-stopped
     deploy:
       resources:
