@@ -23,8 +23,8 @@ services:
       - CAMUNDA_OPTIMIZE_IDENTITY_REDIRECT_ROOT_URL=https://${HOSTNAME}/optimize
       - OPTIMIZE_ELASTICSEARCH_HOST=elasticsearch
       - OPTIMIZE_ELASTICSEARCH_HTTP_PORT=9200
-      - OPTIMIZE_ELASTICSEARCH_USERNAME=elastic
-      - OPTIMIZE_ELASTICSEARCH_PASSWORD=${ELASTIC_DB_PASSWORD}
+      - CAMUNDA_OPTIMIZE_ELASTICSEARCH_SECURITY_USERNAME=elastic # Undocumented, but mentioned in the user forum
+      - CAMUNDA_OPTIMIZE_ELASTICSEARCH_SECURITY_PASSWORD=${ELASTIC_DB_PASSWORD} # https://forum.camunda.io/t/not-able-to-authenticate-optimize-with-an-es-cluster-with-basic-auth/43788/9
       - SPRING_PROFILES_ACTIVE=ccsm
       - CAMUNDA_OPTIMIZE_ZEEBE_ENABLED=true
       - CAMUNDA_OPTIMIZE_ENTERPRISE=false
