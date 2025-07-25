@@ -1,4 +1,4 @@
-container.elasticsearch/** 
+container.elasticsearch/data
 container.operate/**
 container.postgres/**
 container.tasklist/**
