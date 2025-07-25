@@ -15,13 +15,15 @@ services:
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
     volumes:
       - ./container.elasticsearch/data:/usr/share/elasticsearch/data
+      - ./container.elasticsearch/scripts/entrypoint.sh:/entrypoint.sh
+    command: ["/entrypoint.sh"]
     networks:
       - camunda-platform
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "curl -f -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cat/health | grep -q green"
+          "curl -f -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cat/health | grep -q green",
         ]
       interval: 30s
       timeout: 5s
