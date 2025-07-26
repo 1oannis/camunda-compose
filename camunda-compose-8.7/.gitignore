@@ -1,5 +1,6 @@
 container.elasticsearch/data
 container.operate/**
+container.optimize/tmp/**
 container.postgres/**
 container.tasklist/**
 container.traefik/**

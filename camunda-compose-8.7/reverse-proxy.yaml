@@ -38,6 +38,8 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
       # Uncomment for testing (acme staging server)
       # - "--certificatesresolvers.letsencrypt.acme.caserver=${ACME_CASERVER}"
+    environment:
+      TZ: ${TIMEZONE}
     ports:
       - "80:80"
       - "443:443"

@@ -112,6 +112,7 @@ create_directory "./container.elasticsearch/data" "1000:0" "700" "Elasticsearch 
 create_directory "./container.postgres/data" "0:0" "755" "PostgreSQL data"
 create_directory "./container.zeebe/data" "1001:1001" "700" "Zeebe data"
 create_directory "./container.operate/tmp" "1001:1001" "700" "Operate temporary files"
+create_directory "./container.optimize/tmp" "1001:1001" "700" "Optimize temporary files"
 create_directory "./container.tasklist/tmp" "1001:1001" "700" "Tasklist temporary files"
 create_directory "./container.web-modeler-db/data" "0:0" "755" "Web Modeler database"
 create_directory "./container.optimize/configuration" "1001:1001" "600" "Optimize configuration"

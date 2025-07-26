@@ -14,6 +14,7 @@ services:
       - "traefik.http.routers.zeebe-grpc.tls=true"
       - "traefik.http.routers.zeebe-grpc.service=zeebe-grpc"
     environment: # https://docs.camunda.io/docs/self-managed/zeebe-deployment/configuration/
+      - TZ=${TIMEZONE}
       - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_MODE=${ZEEBE_AUTHENTICATION_MODE}
       - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_IDENTITY_ISSUERBACKENDURL=http://keycloak:18080/auth/realms/camunda-platform
       - ZEEBE_BROKER_GATEWAY_SECURITY_AUTHENTICATION_IDENTITY_AUDIENCE=zeebe-api
@@ -85,6 +86,7 @@ services:
       - "traefik.http.middlewares.operate-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.operate.middlewares=operate-headers,operate-cors"
     environment: #https://docs.camunda.io/docs/self-managed/operate-deployment/operate-configuration/
+      - TZ=${TIMEZONE}
       - SERVER_SERVLET_CONTEXT_PATH=/operate
       - CAMUNDA_OPERATE_ZEEBE_GATEWAYADDRESS=zeebe:26500
       - ZEEBE_CLIENT_ID=${ZEEBE_CLIENT_ID}
@@ -164,6 +166,7 @@ services:
       - "traefik.http.middlewares.tasklist-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.tasklist.middlewares=tasklist-headers,tasklist-cors"
     environment: # https://docs.camunda.io/docs/self-managed/tasklist-deployment/tasklist-configuration/
+      - TZ=${TIMEZONE}
       - SERVER_SERVLET_CONTEXT_PATH=/tasklist
       - CAMUNDA_TASKLIST_ZEEBE_GATEWAYADDRESS=zeebe:26500
       - CAMUNDA_TASKLIST_ZEEBE_RESTADDRESS=http://zeebe:8080
@@ -245,6 +248,7 @@ services:
       - "traefik.http.middlewares.connectors-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.connectors.middlewares=connectors-headers,connectors-cors"
     environment: # https://docs.camunda.io/docs/self-managed/connectors-deployment/connectors-configuration/
+      - TZ=${TIMEZONE}
       - OPERATE_CLIENT_BASEURL=http://operate:8080/operate
       - OPERATE_CLIENT_PROFILE=oidc
       - OPERATE_CLIENT_AUTHURL=http://keycloak:18080/auth/realms/camunda-platform/protocol/openid-connect/token

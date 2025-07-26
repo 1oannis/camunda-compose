@@ -15,7 +15,8 @@ services:
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
     volumes:
       - ./container.elasticsearch/data:/usr/share/elasticsearch/data
-      - ./container.elasticsearch/scripts/entrypoint.sh:/entrypoint.sh
+      - ./container.elasticsearch/docker-entrypoint.d/entrypoint.sh:/entrypoint.sh
+
     command: ["/entrypoint.sh"]
     networks:
       - camunda-platform
@@ -46,6 +47,7 @@ services:
     container_name: postgres
     image: postgres:${POSTGRES_VERSION}
     environment:
+      TZ: ${TIMEZONE}
       POSTGRES_DB: ${PG_DB}
       POSTGRES_USER: ${PG_USER}
       POSTGRES_PASSWORD: ${PG_PASSWORD}

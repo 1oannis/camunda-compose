@@ -21,6 +21,7 @@ services:
       - "traefik.http.middlewares.keycloak-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.keycloak.middlewares=keycloak-headers,keycloak-cors"
     environment:
+      TZ: ${TIMEZONE}
       KEYCLOAK_HTTP_PORT: 18080
       KEYCLOAK_HTTP_RELATIVE_PATH: /auth
       KEYCLOAK_DATABASE_HOST: postgres
@@ -72,6 +73,7 @@ services:
       - "traefik.http.middlewares.identity-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.identity.middlewares=identity-headers,identity-cors"
     environment: # https://docs.camunda.io/docs/self-managed/identity/deployment/configuration-variables/
+      TZ: ${TIMEZONE}
       SERVER_PORT: 8084
       IDENTITY_BASE_PATH: /identity
       IDENTITY_RETRY_DELAY_SECONDS: 30

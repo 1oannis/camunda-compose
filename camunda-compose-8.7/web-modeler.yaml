@@ -6,6 +6,7 @@ services:
     container_name: web-modeler-db
     image: postgres:${POSTGRES_VERSION}
     environment:
+      TZ: ${TIMEZONE}
       POSTGRES_DB: ${WEB_MODELER_DB}
       POSTGRES_USER: ${WEB_MODELER_DB_USER}
       POSTGRES_PASSWORD: ${WEB_MODELER_DB_PASSWORD}
@@ -49,6 +50,7 @@ services:
       - "traefik.http.middlewares.mailpit-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.mailpit.middlewares=mailpit-headers,mailpit-cors"
     environment:
+      TZ: ${TIMEZONE}
       MP_WEBROOT: /mail
     networks:
       - web-modeler
@@ -70,6 +72,7 @@ services:
     image: camunda/web-modeler-restapi:${CAMUNDA_WEB_MODELER_VERSION}
     command: /bin/sh -c "java $JAVA_OPTIONS org.springframework.boot.loader.JarLauncher"
     environment:
+      TZ: ${TIMEZONE}
       JAVA_OPTIONS: -Xmx800m
       LOGGING_LEVEL_IO_CAMUNDA_MODELER: DEBUG
       CAMUNDA_IDENTITY_BASEURL: http://identity:8084
@@ -152,6 +155,7 @@ services:
       - "traefik.http.middlewares.modeler-webapp-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.modeler-webapp.middlewares=modeler-webapp-headers,modeler-webapp-cors"
     environment:
+      TZ: ${TIMEZONE}
       RESTAPI_HOST: web-modeler-restapi
       SERVER_HTTPS_ONLY: "true"
       SERVER_URL: https://${HOSTNAME}/modeler
@@ -216,6 +220,7 @@ services:
       - "traefik.http.middlewares.modeler-websockets-cors.headers.accesscontrolallowcredentials=${CORS_ALLOW_CREDENTIALS}"
       - "traefik.http.routers.modeler-websockets.middlewares=modeler-websockets-headers,modeler-websockets-cors"
     environment:
+      TZ: ${TIMEZONE}
       APP_NAME: "Web Modeler Self-Managed WebSockets"
       APP_DEBUG: "true"
       PUSHER_APP_ID: web-modeler-app
