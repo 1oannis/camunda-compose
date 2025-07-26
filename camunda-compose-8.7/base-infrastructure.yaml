@@ -10,13 +10,11 @@ services:
       - discovery.type=single-node
       - xpack.security.enabled=true
       - ELASTIC_PASSWORD=${ELASTIC_DB_PASSWORD}
-      # allow running with low disk space
       - cluster.routing.allocation.disk.threshold_enabled=false
       - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
     volumes:
       - ./container.elasticsearch/data:/usr/share/elasticsearch/data
       - ./container.elasticsearch/docker-entrypoint.d/entrypoint.sh:/entrypoint.sh
-
     command: ["/entrypoint.sh"]
     networks:
       - camunda-platform

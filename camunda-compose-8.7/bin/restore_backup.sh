@@ -192,7 +192,40 @@ if [ "$DRY_RUN" = true ]; then
     print_status "Backup file: $BACKUP_FILE"
     print_status "Services running: $SERVICES_RUNNING"
     print_status "Would restore the following:"
-    cat "$TEMP_DIR/contents.txt"
+    
+    # Show what would be overwritten vs extracted
+    print_status "Would OVERWRITE these directories:"
+    grep "^container\." "$TEMP_DIR/contents.txt" | head -10
+    if [ $(grep "^container\." "$TEMP_DIR/contents.txt" | wc -l) -gt 10 ]; then
+        print_status "... and more container directories"
+    fi
+    
+    print_status "Would extract (but not overwrite):"
+    grep -v "^container\." "$TEMP_DIR/contents.txt" | grep -v "backup-metadata.txt" | head -10
+    if [ $(grep -v "^container\." "$TEMP_DIR/contents.txt" | grep -v "backup-metadata.txt" | wc -l) -gt 10 ]; then
+        print_status "... and more configuration files"
+    fi
+    
+    # Simulate change detection for dry run
+    print_status "Would analyze changes in container directories:"
+    for dir in container.*; do
+        if [ -d "$dir" ]; then
+            TOP_DIR_COUNT=$(find "$dir" -maxdepth 1 -type d 2>/dev/null | wc -l)
+            FILE_COUNT=$(find "$dir" -type f 2>/dev/null | wc -l)
+            print_status "  $dir: $TOP_DIR_COUNT top-level directories, $FILE_COUNT files would be compared"
+            
+            if [ "$VERBOSE" = true ]; then
+                print_status "    Top-level directories in $dir:"
+                find "$dir" -maxdepth 1 -type d | sort | while read -r subdir; do
+                    if [ "$subdir" != "$dir" ]; then
+                        SUB_FILE_COUNT=$(find "$subdir" -type f 2>/dev/null | wc -l)
+                        echo "      $(basename "$subdir") ($SUB_FILE_COUNT files)"
+                    fi
+                done
+            fi
+        fi
+    done
+    
     exit 0
 fi
 
@@ -219,6 +252,29 @@ for dir in container.*; do
 done
 eval "$SAFETY_TAR_CMD" || print_warning "Failed to create safety backup"
 
+# Create state snapshot before restore for change detection
+print_status "Creating state snapshot for change detection..."
+TEMP_DIR_STATE=$(mktemp -d)
+trap "rm -rf $TEMP_DIR $TEMP_DIR_STATE" EXIT
+
+# Document current state of container directories
+if [ "$VERBOSE" = true ]; then
+    print_status "Documenting current state..."
+fi
+
+for dir in container.*; do
+    if [ -d "$dir" ]; then
+        if [ "$VERBOSE" = true ]; then
+            print_status "Scanning: $dir"
+        fi
+        # Create directory structure snapshot instead of individual files
+        find "$dir" -type d | sort > "$TEMP_DIR_STATE/before_${dir}_dirs.txt" || true
+        find "$dir" -type f | wc -l > "$TEMP_DIR_STATE/before_${dir}_filecount.txt" || true
+        # Store top-level subdirectories for comparison
+        find "$dir" -maxdepth 1 -type d | sort > "$TEMP_DIR_STATE/before_${dir}_topdirs.txt" || true
+    fi
+done
+
 # Extract backup
 print_status "Extracting backup archive..."
 if [ "$VERBOSE" = true ]; then
@@ -232,6 +288,67 @@ if [ $? -eq 0 ]; then
 else
     print_error "Failed to extract backup"
     exit 1
+fi
+
+# Document state after restore
+print_status "Documenting restored state..."
+for dir in container.*; do
+    if [ -d "$dir" ]; then
+        if [ "$VERBOSE" = true ]; then
+            print_status "Scanning: $dir"
+        fi
+        # Create directory structure snapshot instead of individual files
+        find "$dir" -type d | sort > "$TEMP_DIR_STATE/after_${dir}_dirs.txt" || true
+        find "$dir" -type f | wc -l > "$TEMP_DIR_STATE/after_${dir}_filecount.txt" || true
+        # Store top-level subdirectories for comparison
+        find "$dir" -maxdepth 1 -type d | sort > "$TEMP_DIR_STATE/after_${dir}_topdirs.txt" || true
+    fi
+done
+
+# Analyze changes
+print_status "Analyzing changes..."
+CHANGES_FOUND=false
+
+for dir in container.*; do
+    if [ -d "$dir" ] && [ -f "$TEMP_DIR_STATE/before_${dir}_topdirs.txt" ] && [ -f "$TEMP_DIR_STATE/after_${dir}_topdirs.txt" ]; then
+        # Get file counts
+        BEFORE_COUNT=$(cat "$TEMP_DIR_STATE/before_${dir}_filecount.txt" 2>/dev/null || echo "0")
+        AFTER_COUNT=$(cat "$TEMP_DIR_STATE/after_${dir}_filecount.txt" 2>/dev/null || echo "0")
+        
+        # Compare top-level directory structures
+        if ! cmp -s "$TEMP_DIR_STATE/before_${dir}_topdirs.txt" "$TEMP_DIR_STATE/after_${dir}_topdirs.txt"; then
+            CHANGES_FOUND=true
+            print_status "Changes detected in $dir:"
+            print_status "  Files: $BEFORE_COUNT → $AFTER_COUNT"
+            
+            # Show added top-level directories
+            diff "$TEMP_DIR_STATE/before_${dir}_topdirs.txt" "$TEMP_DIR_STATE/after_${dir}_topdirs.txt" | \
+                grep "^>" | cut -c3- | \
+                while read -r directory; do
+                    echo "  + $directory"
+                done
+            
+            # Show removed top-level directories
+            diff "$TEMP_DIR_STATE/before_${dir}_topdirs.txt" "$TEMP_DIR_STATE/after_${dir}_topdirs.txt" | \
+                grep "^<" | cut -c3- | \
+                while read -r directory; do
+                    echo "  - $directory"
+                done
+        else
+            # Check if only file count changed (same structure, different files)
+            if [ "$BEFORE_COUNT" != "$AFTER_COUNT" ]; then
+                CHANGES_FOUND=true
+                print_status "Changes detected in $dir:"
+                print_status "  Files: $BEFORE_COUNT → $AFTER_COUNT (same directory structure)"
+            elif [ "$VERBOSE" = true ]; then
+                print_status "No changes detected in $dir"
+            fi
+        fi
+    fi
+done
+
+if [ "$CHANGES_FOUND" = false ]; then
+    print_warning "No changes detected - this may indicate the backup is identical to current state"
 fi
 
 # Verify critical directories were restored
