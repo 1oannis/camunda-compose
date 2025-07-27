@@ -49,7 +49,7 @@ cleanup() {
     
     # Stop all containers first to ensure data is not being written
     print_status "Stopping all containers..."
-    ./shutdown.sh
+    ./bin/shutdown.sh
     
     print_success "All containers stopped"
     
