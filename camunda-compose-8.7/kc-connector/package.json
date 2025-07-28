@@ -1,0 +1,24 @@
+{
+  "name": "user-creation-service",
+  "version": "1.0.0",
+  "description": "Lightweight service for user creation in Keycloak",
+  "main": "user-service.js",
+  "scripts": {
+    "start": "node user-service.js",
+    "dev": "nodemon user-service.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "keycloak",
+    "user-management",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT"
+}

@@ -1,26 +1,13 @@
-# While the Docker images themselves are supported for production usage,
-# this docker-compose.yaml is designed to be used by developers to run
-# an environment locally. It is not designed to be used in production.
-# We recommend to use Kubernetes in production with our Helm Charts:
-# https://docs.camunda.io/docs/self-managed/setup/install/
-# For local development, we recommend using KIND instead of `docker-compose`:
-# https://docs.camunda.io/docs/self-managed/platform-deployment/helm-kubernetes/guides/local-kubernetes-cluster/
-
-# Main docker-compose file that includes component-specific files
-# This enables modular deployment and maintenance
-
 # Include component-specific compose files
 include:
-  - reverse-proxy.yaml # Traefik reverse proxy
+  - reverse-proxy.yaml        # Traefik reverse proxy
   - base-infrastructure.yaml  # elasticsearch, postgres
   - identity.yaml             # keycloak, identity
   - core-services.yaml        # zeebe, operate, tasklist, connectors
   - optimize.yaml             # optimize
   - web-modeler.yaml          # web-modeler components
-  # - monitoring.yaml         # kibana - uncomment to enable monitoring
+  - kc-connector.yaml         # kc-connector
 
-# Define shared networks that all components will use
-# Declaring the networks here first prevents the "conflicts with imported resource" error
 networks:
   camunda-platform:
   identity-network:

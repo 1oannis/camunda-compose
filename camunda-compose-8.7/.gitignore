@@ -11,3 +11,5 @@ configuration/runtime_local_camunda.1oannis.com.env
 configuration/runtime_local_camunda.1oannis.com/**
 
 backups/**
+
+kc-connector/node_modules/**
