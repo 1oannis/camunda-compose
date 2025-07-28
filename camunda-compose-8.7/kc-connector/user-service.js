@@ -150,10 +150,13 @@ app.post("/user", async (req, res) => {
 
 // Health check endpoint
 app.get("/health", (req, res) => {
+  const now = new Date();
   res.status(200).json({
     status: "OK",
     service: "User Creation Service",
-    timestamp: new Date().toISOString(),
+    timestamp: now.toISOString(),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    localTime: now.toString(),
   });
 });
 

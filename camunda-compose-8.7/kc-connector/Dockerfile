@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+# Install timezone data
+RUN apk add --no-cache tzdata
+
 # Set working directory
 WORKDIR /app
 
