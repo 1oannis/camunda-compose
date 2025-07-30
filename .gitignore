@@ -1,4 +1,19 @@
+container.elasticsearch/data
+container.operate/**
+container.optimize/tmp/**
+container.postgres/**
+container.tasklist/**
+container.traefik/**
+container.web-modeler-db/**
+container.zeebe/**
+
+configuration/runtime_local_camunda.1oannis.com.env
+configuration/runtime_local_camunda.1oannis.com/**
+
+backups/**
+
+kc-connector/node_modules/**
+
 .DS_Store
-/camunda-latest/*
 
 .env
