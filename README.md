@@ -4,7 +4,6 @@
 >
 > This deployment is based on the [Camunda 8 Self-Managed - Docker Compose](https://github.com/camunda/camunda-distributions/tree/main/docker-compose/versions/camunda-8.7) project by Camunda GmbH, licensed under the Apache License 2.0. This project extends the original deployment with additional configuration, scripts, and documentation for production use.
 
-
 This is a complete Camunda 8 Self-Managed deployment using Docker Compose with all components including Web Modeler and backup capabilities.
 
 ## 🚀 Quick Start
@@ -134,11 +133,11 @@ This is a complete Camunda 8 Self-Managed deployment using Docker Compose with a
 
 ### Backup & Restore
 
-| Script                  | Purpose              | Usage                               |
-| ----------------------- | -------------------- | ----------------------------------- |
-| `bin/make_backup.sh`    | Create system backup | `./bin/make_backup.sh [options]`    |
-| `bin/restore_backup.sh` | Restore from backup  | `./bin/restore_backup.sh [options]` |
-| `bin/cleanup.sh`        | Clean up old backups | `./bin/cleanup.sh [options]`        |
+| Script                  | Purpose                   | Usage                               |
+| ----------------------- | ------------------------- | ----------------------------------- |
+| `bin/make_backup.sh`    | Create system backup      | `./bin/make_backup.sh [options]`    |
+| `bin/restore_backup.sh` | Restore from backup       | `./bin/restore_backup.sh [options]` |
+| `bin/cleanup.sh`        | Clean directory structure | `./bin/cleanup.sh [options]`        |
 
 **Backup Options:**
 
